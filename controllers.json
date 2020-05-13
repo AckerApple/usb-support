@@ -1,0 +1,60 @@
+{
+  "2064": {
+    "58625": {
+      "listing": {
+        "vendorId": 2064,
+        "productId": 58625,
+        "path": "IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/XHC1@14/XHC1@14000000/HS08@14300000/USB2.0 Hub             @14300000/AppleUSB20Hub@14300000/AppleUSB20HubPort@14310000/usb gamepad           @14310000/IOUSBHostInterface@0/AppleUserUSBHostHIDDevice",
+        "serialNumber": "",
+        "manufacturer": "",
+        "product": "usb gamepad           ",
+        "release": 262,
+        "interface": 0,
+        "usagePage": 1,
+        "usage": 4
+      },
+      "map": {
+        "up": {
+          "pos": 4,
+          "value": 0,
+          "idle": 127
+        },
+        "down": {
+          "pos": 4,
+          "value": 255,
+          "idle": 127
+        },
+        "left": {
+          "pos": 3,
+          "value": 0,
+          "idle": 127
+        },
+        "right": {
+          "pos": 3,
+          "value": 255,
+          "idle": 127
+        },
+        "a": {
+          "pos": 5,
+          "value": 47,
+          "idle": 15
+        },
+        "b": {
+          "pos": 5,
+          "value": 31,
+          "idle": 15
+        },
+        "select": {
+          "pos": 6,
+          "value": 16,
+          "idle": 0
+        },
+        "start": {
+          "pos": 6,
+          "value": 32,
+          "idle": 0
+        }
+      }
+    }
+  }
+}
