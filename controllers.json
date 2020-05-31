@@ -17,43 +17,63 @@
         "up": {
           "pos": 4,
           "value": 0,
-          "idle": 127
+          "idle": 127,
+          "updatedAt": 1590963431118
         },
         "down": {
           "pos": 4,
           "value": 255,
-          "idle": 127
+          "idle": 127,
+          "updatedAt": 1590963432454
         },
         "left": {
           "pos": 3,
           "value": 0,
-          "idle": 127
+          "idle": 127,
+          "updatedAt": 1590963433102
         },
         "right": {
           "pos": 3,
           "value": 255,
-          "idle": 127
+          "idle": 127,
+          "updatedAt": 1590963433710
         },
         "a": {
           "pos": 5,
           "value": 47,
-          "idle": 15
+          "idle": 15,
+          "updatedAt": 1590963434638
         },
         "b": {
           "pos": 5,
           "value": 31,
-          "idle": 15
+          "idle": 15,
+          "updatedAt": 1590963435166
         },
         "select": {
           "pos": 6,
           "value": 16,
-          "idle": 0
+          "idle": 0,
+          "updatedAt": 1590963435734
         },
         "start": {
           "pos": 6,
           "value": 32,
-          "idle": 0
+          "idle": 0,
+          "updatedAt": 1590963436182
         }
+      },
+      "deviceMeta": {
+        "vendorId": 2064,
+        "productId": 58625,
+        "path": "IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/XHC1@14/XHC1@14000000/HS08@14300000/USB2.0 Hub             @14300000/AppleUSB20Hub@14300000/AppleUSB20HubPort@14340000/USB2.0 Hub             @14340000/AppleUSB20Hub@14340000/AppleUSB20HubPort@14344000/usb gamepad           @14344000/IOUSBHostInterface@0/AppleUserUSBHostHIDDevice",
+        "serialNumber": "",
+        "manufacturer": "",
+        "product": "usb gamepad           ",
+        "release": 262,
+        "interface": 0,
+        "usagePage": 1,
+        "usage": 4
       }
     }
   }

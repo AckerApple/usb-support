@@ -90,11 +90,11 @@ function consoleDevices() {
 function listenToDeviceByIndex(index) {
     const devices = listDevices();
     const deviceMeta = devices[index];
-
     const gameController = new GameController();
     gameController.deviceMeta = deviceMeta;
-    gameController.device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
-    gameController.listen().mapIdle().then(() => {
+    const device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
+    gameController.device = device;
+    gameController.listen().paramIdle().then(() => {
         gameController.events.on("change", (data) => {
             console.log("new data", data.length, data)
     
@@ -121,14 +121,15 @@ function listenToDeviceByIndex(index) {
 
 function listenMapGameController() {
     const controllers = getGameControllers();
-    
     listenToControllers(controllers)
     mapControllersIdle(controllers);
     
     return requestOneControllerFrom(controllers).then((controller) => {
         closeControllers(controllers);
-        console.log("Working with " + controller.deviceMeta.product);
-    });
+        console.log(`\x1b[36mWorking with ${controller.deviceMeta.product}\x1b[0m`);
+        
+        return controller.listen().promiseNextIdle();
+    }).then((controller) => mapController(controller));
 }
 
 function closeControllers(controllers: GameController[]) {
@@ -148,13 +149,15 @@ function mapControllersIdle(controllers: GameController[]) {
 
 
 function requestOneControllerFrom(controllers: GameController[]): Promise<GameController> {
-    console.log("Pairing idle states on " + controllers.length + " game controllers");
     console.log();
-    console.log("Do not touch any buttons for three seconds...");
+    console.log();
+    console.log("\x1b[36mPairing idle states on " + controllers.length + " game controllers\x1b[0m");
+    console.log();
+    console.log("\x1b[33mDo not touch any buttons for three seconds...\x1b[0m");
 
     return promisify( setTimeout )( 3000 ).then(() => {
         console.log();
-        console.log("Press and hold a button on a game controller");
+        console.log("\x1b[36mPress and hold a button on a game controller...\x1b[0m");
 
         const listeners: ISubscriber[] = [];
         return new Promise((res) => {
@@ -192,12 +195,15 @@ function mapDeviceByIndex(index) {
     const gameController = new GameController();
     const devices = listDevices();
     const deviceMeta = devices[index];
-
-
     gameController.deviceMeta = deviceMeta;
     gameController.device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
+    mapController(gameController);
+    openDevices.push(gameController.device);
+    return "";
+}
 
-    gameController.listen().mapIdle();
+function mapController(gameController: GameController): Promise<void> {
+    let resolver;
 
     function getNextQuestion() {
         return Object.keys(gameController.map).find((key) => gameController.map[key] === null)
@@ -208,7 +214,8 @@ function mapDeviceByIndex(index) {
         console.log("\x1b[36mPush the " + key + " key\x1b[0m");
     }
 
-    const onChange = (data: number[]) => {
+    const onChange = () => {
+        const data = gameController.lastData;
         const key = getNextQuestion();
         const diffs = gameController.filterIdleDifferences(data);
         const diffKeys = Object.keys(diffs);
@@ -252,17 +259,16 @@ function mapDeviceByIndex(index) {
                 return controllerFile;
             }).then(saveControllerFile).finally(() =>
                 gameController.close()
-            );
+            ).then( resolver );
         }
     };
 
-    gameController.events.on("change", onChange);
+    gameController.listen().paramIdle().then(() => {
+        gameController.events.on("notIdle", onChange);
+        askForButton();
+    });
 
-    askForButton();
-
-    openDevices.push(gameController.device);
-
-    return "";
+    return new Promise(res => resolver = res);
 }
 
 import * as fs from "fs";

@@ -1,7 +1,15 @@
+import * as HID from 'node-hid';
 import { EventEmitter } from 'events';
-import { listeners } from 'cluster';
+import { promisify } from 'util';
 
 export interface IDevice {
+    listenerCount: () => number;
+    eventNames: () => string[];
+    addListener: (eventName: string, callback: (...args) => any) => any;
+    removeAllListeners: () => any;
+    removeListener: (eventType: string, listener: (...args) => any) => any
+    resume: () => any;
+    pause: () => any;
     on: (type: string, data: any) => any;
     close: () => any;
 }
@@ -25,6 +33,7 @@ export interface ISubscriber {
 }
 
 export class GameController {
+    listener: (data: number[]) => any
     device: IDevice;
     
     deviceMeta: IDeviceMeta
@@ -72,15 +81,31 @@ export class GameController {
             const lastChangedAt = this.changedAt;
             
             timeout = setTimeout(() => {
-                console.log("check change", this.changedAt, lastChangedAt);
                 if (this.changedAt === lastChangedAt && !this.isCurrentState(startState)) {
                     callback();
-                    this.events.removeListener("change", listener);
+                    sub.unsubscribe();
                 }
             }, timeMs);
         }
 
-        this.events.addListener("change", listener);
+        const sub = this.subscribe("change", listener);
+    }
+
+    async promiseNextIdle(): Promise<GameController> {
+        return promisify(this.onNextIdle.bind(this))();
+    }
+
+    onNextIdle(callback: (err: Error, value: GameController) => any) {
+        if (this.isIdle) {
+            return callback(null, this);
+        }
+
+        const sub = this.subscribe("idle", () => {
+            callback(null, this);
+            sub.unsubscribe();
+        });
+
+        return this;
     }
 
     isCurrentState(state: number[]) {
@@ -96,6 +121,18 @@ export class GameController {
     }
 
     listen() {
+        if (this.listener) {
+            return this; // already listening
+        }
+
+        if (!this.device) {
+            if (this.deviceMeta) {
+                this.device = new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
+            } else {
+                throw new Error("GameController.deviceMeta has not been set. Need vendorId and productId");
+            }
+        }
+
         const onNewData = (data) => {
             this.changedAt = Date.now();
             
@@ -112,18 +149,27 @@ export class GameController {
             this.events.emit("change", data);
         }
         const callback = whenCallbackChanges(onNewData, (a) => a.toString());
-        this.device.on("data", (data) => {
+        
+        this.listener = (data: number[]) => {
             this.lastData = data;
             this.events.emit("data", data);
             callback(data)
-        });
+        };
+        
+        this.device.addListener("data", this.listener);
 
         return this;
     }
 
     close() {
-        this.device.close();
+        // this.device.off("data")
+        // this.device.removeAllListeners();
+        if (this.listener) {
+            this.device.removeListener("data", this.listener);
+            delete this.listener;
+        }
         this.events.removeAllListeners();
+        // delete this.device;
     }
 
     async mapIdle() {
@@ -133,6 +179,14 @@ export class GameController {
                 res();
             });
         });
+    }
+
+    async paramIdle() {
+        if (this.idle.length) {
+            return Promise.resolve();
+        }
+
+        return this.mapIdle();
     }
 
     // returns which bit buckets do not match
