@@ -51,7 +51,7 @@ export class GameController {
             callback(...args);
         };
 
-        this.events.addListener("notIdle", listener);
+        this.events.addListener(eventType, listener);
 
         return {
             unsubscribe: () => {
@@ -61,11 +61,19 @@ export class GameController {
     }
 
     onNextChangeHold(callback: () => any, timeMs: number = 2000) {
-        const listener = () => {
-            const lastChangedAt = this.changedAt;
+        const startState = this.lastData;
+        let timeout;
 
-            setTimeout(() => {
-                if (this.changedAt === lastChangedAt) {
+        const listener = () => {
+            if (timeout != undefined) {
+                clearTimeout(timeout);
+            }
+
+            const lastChangedAt = this.changedAt;
+            
+            timeout = setTimeout(() => {
+                console.log("check change", this.changedAt, lastChangedAt);
+                if (this.changedAt === lastChangedAt && !this.isCurrentState(startState)) {
                     callback();
                     this.events.removeListener("change", listener);
                 }
@@ -73,6 +81,18 @@ export class GameController {
         }
 
         this.events.addListener("change", listener);
+    }
+
+    isCurrentState(state: number[]) {
+        if (!state && !this.lastData) {
+            return true;
+        }
+
+        if (!state || !this.lastData) {
+            return false;
+        }
+
+        return this.lastData.find((data,index) => state.length <= index || state[index] !== data) ? false : true
     }
 
     listen() {
