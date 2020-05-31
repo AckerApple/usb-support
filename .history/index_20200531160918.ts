@@ -1,6 +1,3 @@
-import { ISubscriber, IDeviceMeta, IDevice, GameController } from "./GameController";
-import * as HID from 'node-hid';
-
 const repl = require('repl');
 
 function runApp() {
@@ -55,6 +52,11 @@ runApp();
 
 
 
+
+
+
+import { IDeviceMeta, IDevice, GameController } from "./GameController";
+import * as HID from 'node-hid';
 
 
 
@@ -121,62 +123,23 @@ function listenToDeviceByIndex(index) {
 
 function listenMapGameController() {
     const controllers = getGameControllers();
-    
-    listenToControllers(controllers)
-    mapControllersIdle(controllers);
-    
-    return requestOneControllerFrom(controllers).then((controller) => {
-        closeControllers(controllers);
-        console.log("Working with " + controller.deviceMeta.product);
-    });
-}
 
-function closeControllers(controllers: GameController[]) {
-    controllers.forEach(controller => controller.close());
-    return controllers;
-}
-
-function listenToControllers(controllers: GameController[]) {
-    controllers.forEach(controller => controller.listen());
-    return controllers;
-}
-
-function mapControllersIdle(controllers: GameController[]) {
-    controllers.forEach(controller => controller.mapIdle());
-    return controllers;
-}
-
-
-function requestOneControllerFrom(controllers: GameController[]): Promise<GameController> {
     console.log("Pairing idle states on " + controllers.length + " game controllers");
     console.log();
     console.log("Do not touch any buttons for three seconds...");
-
+    
     return promisify( setTimeout )( 3000 ).then(() => {
+        controllers.forEach(controller => {
+            controller.listen().mapIdle();
+
+            controller.onNextChangeHold(() => {
+                console.log("change held on " + controller.deviceMeta.product);
+            });
+        });
+
         console.log();
         console.log("Press and hold a button on a game controller");
-
-        const listeners: ISubscriber[] = [];
-        return new Promise((res) => {
-            controllers.forEach(controller => {
-                const notIdleListener = controller.subscribe("notIdle", () => {
-                    console.log("Controller active: " + controller.deviceMeta.product)
-                });
-
-                const idleListener = controller.subscribe("idle", () => {
-                    console.log("Controller idle: " + controller.deviceMeta.product)
-                });
-                
-                listeners.push(idleListener, notIdleListener);
-
-                controller.onNextChangeHold(() => {
-                    listeners.forEach(listener => listener.unsubscribe())
-
-                    res(controller);
-                });
-            });
-        });    
-    });
+    })
 }
 
 function getGameControllers(): GameController[] {

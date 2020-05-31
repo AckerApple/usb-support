@@ -1,6 +1,3 @@
-import { ISubscriber, IDeviceMeta, IDevice, GameController } from "./GameController";
-import * as HID from 'node-hid';
-
 const repl = require('repl');
 
 function runApp() {
@@ -55,6 +52,11 @@ runApp();
 
 
 
+
+
+
+import { IDeviceMeta, IDevice, GameController } from "./GameController";
+import * as HID from 'node-hid';
 
 
 
@@ -122,28 +124,19 @@ function listenToDeviceByIndex(index) {
 function listenMapGameController() {
     const controllers = getGameControllers();
     
-    listenToControllers(controllers)
-    mapControllersIdle(controllers);
-    
-    return requestOneControllerFrom(controllers).then((controller) => {
-        closeControllers(controllers);
-        console.log("Working with " + controller.deviceMeta.product);
-    });
+    return requestOneControllerFrom(controllers).then( () => listenToControllers(controllers) );
 }
 
 function closeControllers(controllers: GameController[]) {
     controllers.forEach(controller => controller.close());
-    return controllers;
 }
 
 function listenToControllers(controllers: GameController[]) {
     controllers.forEach(controller => controller.listen());
-    return controllers;
 }
 
 function mapControllersIdle(controllers: GameController[]) {
     controllers.forEach(controller => controller.mapIdle());
-    return controllers;
 }
 
 
@@ -156,23 +149,16 @@ function requestOneControllerFrom(controllers: GameController[]): Promise<GameCo
         console.log();
         console.log("Press and hold a button on a game controller");
 
-        const listeners: ISubscriber[] = [];
         return new Promise((res) => {
             controllers.forEach(controller => {
-                const notIdleListener = controller.subscribe("notIdle", () => {
-                    console.log("Controller active: " + controller.deviceMeta.product)
-                });
+                controller.then(() => {
+                    controller.onNextChangeHold(() => {
+                        console.log("change held on " + controller.deviceMeta.product);
+                        
+                        controller.forEach(devices => close);
 
-                const idleListener = controller.subscribe("idle", () => {
-                    console.log("Controller idle: " + controller.deviceMeta.product)
-                });
-                
-                listeners.push(idleListener, notIdleListener);
-
-                controller.onNextChangeHold(() => {
-                    listeners.forEach(listener => listener.unsubscribe())
-
-                    res(controller);
+                        res(controller);
+                    });
                 });
             });
         });    

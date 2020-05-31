@@ -1,6 +1,3 @@
-import { ISubscriber, IDeviceMeta, IDevice, GameController } from "./GameController";
-import * as HID from 'node-hid';
-
 const repl = require('repl');
 
 function runApp() {
@@ -58,6 +55,11 @@ runApp();
 
 
 
+import { IDevice, GameController } from "./GameController";
+import * as HID from 'node-hid';
+
+
+
 let devices;
 const openDevices = [];
 
@@ -72,11 +74,11 @@ function consoleGameDevices() {
     return devices;
 }
 
-function listGameDevices(): {index: number, device: IDeviceMeta}[] {
+function listGameDevices(): {index: number, device: IDevice}[] {
     return listDevices().map((device, index) => ({device, index})).filter(a => a.device.product.indexOf("game") >=0 );
 }
 
-function listDevices(): IDeviceMeta[] {
+function listDevices(): IDevice[] {
     return HID.devices().sort((a, b) => a.vendorId - b.vendorId + a.productId - b.productId);
 }
 
@@ -94,25 +96,25 @@ function listenToDeviceByIndex(index) {
     const gameController = new GameController();
     gameController.deviceMeta = deviceMeta;
     gameController.device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
-    gameController.listen().mapIdle().then(() => {
-        gameController.events.on("change", (data) => {
-            console.log("new data", data.length, data)
-    
-            const map = {
-                a: [47, 63].indexOf(data[5]) >= 0,
-                b: [31, 63].indexOf(data[5]) >= 0,
-                start: [32, 48].indexOf(data[6]) >= 0,
-                select: [16, 48].indexOf(data[6]) >= 0,
-                right: data[3] === 255,
-                down: data[4] === 255,
-                left: data[3] === 0,
-                up: data[4] === 0
-            }
-    
-            console.log("data5", map, "[0]", data[0], "[1]", data[1], "[2]", data[2], "[3]", data[3], "[4]", data[4], "[5]", data[5], "[6]", data[6], "[7]", data[7])
-            // listenToDeviceByIndex(22)
-        })
-    });
+    gameController.listen().mapIdle();
+
+    gameController.events.on("change", (data) => {
+        console.log("new data", data.length, data)
+
+        const map = {
+            a: [47, 63].indexOf(data[5]) >= 0,
+            b: [31, 63].indexOf(data[5]) >= 0,
+            start: [32, 48].indexOf(data[6]) >= 0,
+            select: [16, 48].indexOf(data[6]) >= 0,
+            right: data[3] === 255,
+            down: data[4] === 255,
+            left: data[3] === 0,
+            up: data[4] === 0
+        }
+
+        console.log("data5", map, "[0]", data[0], "[1]", data[1], "[2]", data[2], "[3]", data[3], "[4]", data[4], "[5]", data[5], "[6]", data[6], "[7]", data[7])
+        // listenToDeviceByIndex(22)
+    })
 
     openDevices.push(gameController.device);
 
@@ -121,68 +123,29 @@ function listenToDeviceByIndex(index) {
 
 function listenMapGameController() {
     const controllers = getGameControllers();
-    
-    listenToControllers(controllers)
-    mapControllersIdle(controllers);
-    
-    return requestOneControllerFrom(controllers).then((controller) => {
-        closeControllers(controllers);
-        console.log("Working with " + controller.deviceMeta.product);
-    });
-}
 
-function closeControllers(controllers: GameController[]) {
-    controllers.forEach(controller => controller.close());
-    return controllers;
-}
-
-function listenToControllers(controllers: GameController[]) {
-    controllers.forEach(controller => controller.listen());
-    return controllers;
-}
-
-function mapControllersIdle(controllers: GameController[]) {
-    controllers.forEach(controller => controller.mapIdle());
-    return controllers;
-}
-
-
-function requestOneControllerFrom(controllers: GameController[]): Promise<GameController> {
     console.log("Pairing idle states on " + controllers.length + " game controllers");
     console.log();
     console.log("Do not touch any buttons for three seconds...");
-
+    
     return promisify( setTimeout )( 3000 ).then(() => {
+        controllers.forEach(controller => {
+            controller.listen().mapIdle();
+
+            controller.onNextChangeHold(() => {
+                console.log("change held on " + controller.device.product);
+            });
+        });
+
         console.log();
         console.log("Press and hold a button on a game controller");
-
-        const listeners: ISubscriber[] = [];
-        return new Promise((res) => {
-            controllers.forEach(controller => {
-                const notIdleListener = controller.subscribe("notIdle", () => {
-                    console.log("Controller active: " + controller.deviceMeta.product)
-                });
-
-                const idleListener = controller.subscribe("idle", () => {
-                    console.log("Controller idle: " + controller.deviceMeta.product)
-                });
-                
-                listeners.push(idleListener, notIdleListener);
-
-                controller.onNextChangeHold(() => {
-                    listeners.forEach(listener => listener.unsubscribe())
-
-                    res(controller);
-                });
-            });
-        });    
-    });
+    })
 }
 
 function getGameControllers(): GameController[] {
     return listGameDevices().map(item => {
         const gameController = new GameController();
-        gameController.deviceMeta = item.device;
+        gameController.listing = item.device;
         gameController.device = new HID.HID(item.device.vendorId, item.device.productId);
         return gameController;
     });
@@ -191,11 +154,11 @@ function getGameControllers(): GameController[] {
 function mapDeviceByIndex(index) {
     const gameController = new GameController();
     const devices = listDevices();
-    const deviceMeta = devices[index];
+    const listing = devices[index];
 
 
-    gameController.deviceMeta = deviceMeta;
-    gameController.device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
+    gameController.listing = listing;
+    gameController.device = new HID.HID(listing.vendorId, listing.productId);
 
     gameController.listen().mapIdle();
 
@@ -242,12 +205,12 @@ function mapDeviceByIndex(index) {
 
             readControllerFile().then((controllerFile) => {
                 console.log("controllerFile loaded", controllerFile)
-                const vendorId = gameController.deviceMeta.vendorId;
-                const productId = gameController.deviceMeta.productId;
+                const vendorId = gameController.listing.vendorId;
+                const productId = gameController.listing.productId;
                 console.log("gameController.device", gameController.device, vendorId, productId);
                 const vendors = controllerFile[vendorId] = controllerFile[vendorId] || {};
                 vendors[productId] = vendors[productId] || {};
-                vendors[productId].deviceMeta = gameController.deviceMeta;
+                vendors[productId].listing = gameController.listing;
                 vendors[productId].map = gameController.map;
                 return controllerFile;
             }).then(saveControllerFile).finally(() =>

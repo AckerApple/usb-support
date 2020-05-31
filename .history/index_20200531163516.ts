@@ -1,6 +1,3 @@
-import { ISubscriber, IDeviceMeta, IDevice, GameController } from "./GameController";
-import * as HID from 'node-hid';
-
 const repl = require('repl');
 
 function runApp() {
@@ -55,6 +52,11 @@ runApp();
 
 
 
+
+
+
+import { IDeviceMeta, IDevice, GameController } from "./GameController";
+import * as HID from 'node-hid';
 
 
 
@@ -125,10 +127,9 @@ function listenMapGameController() {
     listenToControllers(controllers)
     mapControllersIdle(controllers);
     
-    return requestOneControllerFrom(controllers).then((controller) => {
-        closeControllers(controllers);
-        console.log("Working with " + controller.deviceMeta.product);
-    });
+    return requestOneControllerFrom(controllers).then( () =>
+        closeControllers(controllers)
+    );
 }
 
 function closeControllers(controllers: GameController[]) {
@@ -156,22 +157,10 @@ function requestOneControllerFrom(controllers: GameController[]): Promise<GameCo
         console.log();
         console.log("Press and hold a button on a game controller");
 
-        const listeners: ISubscriber[] = [];
         return new Promise((res) => {
             controllers.forEach(controller => {
-                const notIdleListener = controller.subscribe("notIdle", () => {
-                    console.log("Controller active: " + controller.deviceMeta.product)
-                });
-
-                const idleListener = controller.subscribe("idle", () => {
-                    console.log("Controller idle: " + controller.deviceMeta.product)
-                });
-                
-                listeners.push(idleListener, notIdleListener);
-
                 controller.onNextChangeHold(() => {
-                    listeners.forEach(listener => listener.unsubscribe())
-
+                    console.log("change held on " + controller.deviceMeta.product);
                     res(controller);
                 });
             });

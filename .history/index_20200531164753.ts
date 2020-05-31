@@ -1,6 +1,3 @@
-import { ISubscriber, IDeviceMeta, IDevice, GameController } from "./GameController";
-import * as HID from 'node-hid';
-
 const repl = require('repl');
 
 function runApp() {
@@ -55,6 +52,11 @@ runApp();
 
 
 
+
+
+
+import { IDeviceMeta, IDevice, GameController } from "./GameController";
+import * as HID from 'node-hid';
 
 
 
@@ -156,24 +158,20 @@ function requestOneControllerFrom(controllers: GameController[]): Promise<GameCo
         console.log();
         console.log("Press and hold a button on a game controller");
 
-        const listeners: ISubscriber[] = [];
+        const listeners = [];
         return new Promise((res) => {
             controllers.forEach(controller => {
                 const notIdleListener = controller.subscribe("notIdle", () => {
-                    console.log("Controller active: " + controller.deviceMeta.product)
-                });
-
-                const idleListener = controller.subscribe("idle", () => {
-                    console.log("Controller idle: " + controller.deviceMeta.product)
+                    console.log("Controller " + controller.deviceMeta.product)
                 });
                 
-                listeners.push(idleListener, notIdleListener);
+                listeners.push(notIdleListener);
 
                 controller.onNextChangeHold(() => {
-                    listeners.forEach(listener => listener.unsubscribe())
-
                     res(controller);
                 });
+            }).then(() => {
+
             });
         });    
     });
