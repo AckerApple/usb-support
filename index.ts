@@ -4,36 +4,70 @@ import * as HID from 'node-hid';
 const repl = require('repl');
 
 function runApp() {
-    console.log("\n");
-    console.log("Welcome to gamepad cli helper");
-    console.log("\n");
+    console.log("\n\n\n");
+    console.log( pink("Welcome to gamepad cli helper") );
+    
+    console.log("");
     menu();
+    console.log();
 
     const r = repl.start({
         prompt: '> ', eval: (a) => {
             const command = a.trim();
 
             switch (command) {
-                case "menu": menu(); break;
-
-                case "devices": devices = consoleDevices(); break
-                case "game-devices": devices = consoleGameDevices(); break
-                case "map-controller": devices = listenMapGameController(); break
-
-                case "quit":
-                case "exit": {
-                    console.log("goodbye");
-                    process.exit(1);
-                }
-
                 default:
                     if (command.length) {
                         console.warn(eval(a));
                     }
             }
-            console.log("\n")
         }
     });
+
+    function reprompt() {
+        console.log()
+        r.displayPrompt(true);
+    }
+
+    function action(method: (...args) => any) {
+        return () => {
+            console.log();
+            Promise.resolve(method()).then(() => {
+                reprompt();
+            });
+        }
+    }
+
+    r.defineCommand("menu", {
+        help: "Tells you what's available",
+        action: action(menu)
+    });
+
+    r.defineCommand("devices", {
+        help: "List USB devices",
+        action: action(consoleDevices)
+    });
+
+    r.defineCommand("dump-devices", {
+        help: "Depp detail list USB devices",
+        action: action(consoleDumpDevices)
+    });
+
+    r.defineCommand("dump-controllers", {
+        help: "Depp detail list USB devices",
+        action: action(consoleDumpControllers)
+    });
+
+    r.defineCommand("game-devices", {
+        help: "List USB devices known to be game controllers",
+        action: action(consoleGameDevices)
+    });
+
+    r.defineCommand("map-controller", {
+        help: "List USB devices known to be game controllers",
+        action: action(listenMapGameController)
+    });
+    // r.setupHistory("menu", menuCommand)
 
     Object.defineProperty(r.context, 'm', {
         configurable: false,
@@ -45,8 +79,8 @@ function runApp() {
 }
 
 function menu() {
-    console.log("COMMANDS: menu, devices, game-devices, map-controller, exit");
-    console.log("METHODS: listenToDeviceByIndex(index: number)");
+    console.log(cyan("COMMANDS") + ": .menu, .devices, .game-devices, .dump-contollers, .map-controller");
+    console.log(cyan("METHODS") + ":");
     console.log("   -  listenToDeviceByIndex(index: number)");
     console.log("   -  mapDeviceByIndex(index: number)");
 }
@@ -73,11 +107,29 @@ function consoleGameDevices() {
 }
 
 function listGameDevices(): {index: number, device: IDeviceMeta}[] {
-    return listDevices().map((device, index) => ({device, index})).filter(a => a.device.product.indexOf("game") >=0 );
+    return listDevices().map((device, index) => ({device, index})).filter(item => isDeviceController(item.device));
+}
+
+function isDeviceController(device: IDeviceMeta): boolean {
+    return (device.usage === 5 && device.usagePage === 1) || (device.usage === 4 && device.usagePage === 1) || device.product.indexOf("game") >= 0;
 }
 
 function listDevices(): IDeviceMeta[] {
     return HID.devices().sort((a, b) => a.vendorId - b.vendorId + a.productId - b.productId);
+}
+
+function consoleDumpDevices() {
+    const devices = listDevices();
+    console.log();
+    console.log(devices);
+    return devices;
+}
+
+function consoleDumpControllers() {
+    const devices = listDevices().filter( isDeviceController );
+    console.log();
+    console.log(devices);
+    return devices;
 }
 
 function consoleDevices() {
@@ -119,17 +171,26 @@ function listenToDeviceByIndex(index) {
     return "";
 }
 
-function listenMapGameController() {
+function listenMapGameController(): Promise<any> {
     const controllers = getGameControllers();
     listenToControllers(controllers)
     mapControllersIdle(controllers);
     
     return requestOneControllerFrom(controllers).then((controller) => {
         closeControllers(controllers);
-        console.log(`\x1b[36mWorking with ${controller.deviceMeta.product}\x1b[0m`);
+        console.log(cyan(`Working with ${controller.deviceMeta.product}`));
+        
         
         return controller.listen().promiseNextIdle();
     }).then((controller) => mapController(controller));
+}
+
+function pink(message: string) {
+    return `\x1b[35m${message}\x1b[0m`;
+}
+
+function cyan(message: string) {
+    return `\x1b[36m${message}\x1b[0m`;
 }
 
 function closeControllers(controllers: GameController[]) {
@@ -155,9 +216,13 @@ function requestOneControllerFrom(controllers: GameController[]): Promise<GameCo
     console.log();
     console.log("\x1b[33mDo not touch any buttons for three seconds...\x1b[0m");
 
+    setTimeout(() => console.log("."), 1000);
+    setTimeout(() => console.log("."), 2000);
+    setTimeout(() => console.log("."), 3000);
+
     return promisify( setTimeout )( 3000 ).then(() => {
         console.log();
-        console.log("\x1b[36mPress and hold a button on a game controller...\x1b[0m");
+        delayLog("\x1b[36mPress and hold a button on a game controller...\x1b[0m")
 
         const listeners: ISubscriber[] = [];
         return new Promise((res) => {
@@ -202,7 +267,12 @@ function mapDeviceByIndex(index) {
     return "";
 }
 
+function delayLog(...args) {
+    setTimeout(() => console.log(...args), 300);
+}
+
 function mapController(gameController: GameController): Promise<void> {
+    console.log("pairing with controller " + gameController.deviceMeta.product);
     let resolver;
 
     function getNextQuestion() {
@@ -211,7 +281,7 @@ function mapController(gameController: GameController): Promise<void> {
 
     function askForButton() {
         const key = getNextQuestion();
-        console.log("\x1b[36mPush the " + key + " key\x1b[0m");
+        delayLog("\x1b[36mPush the " + key + " key\x1b[0m");
     }
 
     const onChange = () => {
@@ -235,8 +305,8 @@ function mapController(gameController: GameController): Promise<void> {
                 console.log("Key already set: " + alreadySet, { pos, value });
             } else {
                 gameController.map[key] = { pos, value, idle: gameController.idle[pos], updatedAt: Date.now() }
-                console.log(gameController.map);
-                console.log("SAVED KEY " + key, { pos, value })
+                // console.log(gameController.map);
+                console.log("SAVED KEY: " + key + " as ", { pos, value })
             }
         }
 
@@ -245,13 +315,13 @@ function mapController(gameController: GameController): Promise<void> {
         if (getNextQuestion()) {
             askForButton()
         } else {
-            console.log("Buttons mapped");
-
+            console.log("Buttons mapped", gameController.map);
+            
             readControllerFile().then((controllerFile) => {
-                console.log("controllerFile loaded", controllerFile)
+                // console.log("controllerFile loaded", controllerFile)
                 const vendorId = gameController.deviceMeta.vendorId;
                 const productId = gameController.deviceMeta.productId;
-                console.log("gameController.device", gameController.device, vendorId, productId);
+                // console.log("gameController.device", gameController.device, vendorId, productId);
                 const vendors = controllerFile[vendorId] = controllerFile[vendorId] || {};
                 vendors[productId] = vendors[productId] || {};
                 vendors[productId].deviceMeta = gameController.deviceMeta;
@@ -264,6 +334,7 @@ function mapController(gameController: GameController): Promise<void> {
     };
 
     gameController.listen().paramIdle().then(() => {
+        console.log("paired with controller")
         gameController.events.on("notIdle", onChange);
         askForButton();
     });
@@ -285,7 +356,7 @@ function readControllerFile() {
 function saveControllerFile(controllerFile: any) {
     return new Promise((res) => {
         fs.writeFileSync(controllersFilePath, JSON.stringify(controllerFile, null, 2));
-        console.log("saved controllerFile", controllerFile);
+        console.log("saved controllerFile");
         res();
     });
 }

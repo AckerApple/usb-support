@@ -3,6 +3,8 @@ import { EventEmitter } from 'events';
 import { promisify } from 'util';
 
 export interface IDevice {
+    readSync: () => number[];
+    read: (callback: (err, value: number[]) => any) => void;
     listenerCount: () => number;
     eventNames: () => string[];
     addListener: (eventName: string, callback: (...args) => any) => any;
@@ -15,6 +17,9 @@ export interface IDevice {
 }
 
 export interface IDeviceMeta {
+    interface: number;
+    usage: number;
+    usagePage: number;
     productId: number;
     vendorId: number;
     manufacturer: string;
@@ -43,6 +48,11 @@ export class GameController {
     changedAt: number; // last button
     idle: number[] = [];
     isIdle: boolean;
+
+    // device can be asked for state versus always reporting its state
+    allowsInterfacing() {
+        return this.deviceMeta.interface === 0 ? false : true;
+    }
     
     map: { [string: string]: IButtonState | null } = {
         up: null,
@@ -173,7 +183,30 @@ export class GameController {
     }
 
     async mapIdle() {
+        if (this.allowsInterfacing()) {
+            return Promise.resolve();
+        }
+
         return new Promise((res) => {
+            /*for (var x in this.device) {
+                console.log(x, this.device[x]);
+            }*/
+
+            console.log("Lets read");
+
+            this.device.read((err, data) => {
+                console.log("read", data)
+            });
+            
+            console.log("Lets read sync");
+            
+            const readSync = this.device.readSync();
+            console.log("readSync", readSync)
+
+            this.events.on("data", (data) => {
+                console.log("data", data);
+            });
+
             this.events.once("data", () => {
                 this.idle = this.lastData;
                 res();
