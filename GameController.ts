@@ -151,7 +151,7 @@ export class GameController {
         const onNewData = (data) => {
             this.changedAt = Date.now();
             
-            if (this.idle.length) {
+            if (this.idle.length || this.deviceMeta.interface == -1) {
                 this.isIdle = this.determineIdleStateBy(data);
 
                 if (this.isIdle) {
@@ -194,8 +194,6 @@ export class GameController {
         }
 
         return new Promise((res, rej) => {
-            console.log("Lets read " + this.deviceMeta.product);
-
             const timeout = setTimeout(() => {
                 rej(new Error(`Could not map idle state of ${this.deviceMeta.product} in timely fashion`))
             }, 1000);
@@ -213,7 +211,6 @@ export class GameController {
                     return;
                 }
 
-                console.log("read " + this.deviceMeta.product, data)
                 this.idle = this.lastData = data;
                 dataReader(data);
             });
@@ -239,15 +236,28 @@ export class GameController {
 
     // returns which bit buckets do not match
     determineIdleStateBy(data: number[]): boolean {
+        if (this.deviceMeta.interface == -1) {
+            return this.determineInterfaceIdleState();
+        }
+
         const rtn: { [index: number]: number } = {};
 
         for (let index = this.idle.length - 1; index >= 0; --index) {
             const item = this.idle[index];
             if (data[index] !== item) {
-                return false;
+                return false; // its not idle
             }
         }
 
+        return true;
+    }
+
+    determineInterfaceIdleState(): boolean {
+        for (let index = this.lastData.length - 3; index >= 0; --index) {
+            if (this.lastData[index]) {
+                return false; // its not idle
+            }
+        }
         return true;
     }
 
@@ -276,7 +286,8 @@ function whenCallbackChanges(callback, eachArgument) {
             for (let index = arguments.length - 1; index >= 0; --index) {
                 const newValue = eachArgument(arguments[index]);
                 const oldValue = eachArgument(args[index]);
-                if (oldValue != newValue) {
+                const unmatched = oldValue != newValue;
+                if (unmatched) {
                     callback.apply(this, arguments);
                     break;
                 }

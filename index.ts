@@ -19,6 +19,11 @@ const commands = {
         action: logAllControllerChanges
     },
 
+    "pairGameController": {
+        help: "Pair a controller",
+        action: pairGameController
+    },
+
     "logAllDeviceChanges": {
         help: "Every time a usb device has a change it will be listed",
         action: logAllDeviceChanges
@@ -43,11 +48,6 @@ const commands = {
         help: "List USB devices known to be game controllers",
         action: consoleGameDevices
     },
-
-    "map-controller": {
-        help: "List USB devices known to be game controllers",
-        action: listenMapGameController
-    }
 };
 
 function runApp() {
@@ -103,6 +103,7 @@ function runApp() {
 function menu() {
     console.log(cyan("COMMANDS") + ": " + Object.keys(commands).map(name => "." + name).join(", "));
     console.log(cyan("METHODS") + ":");
+    console.log("   -  pairGameController()");
     console.log("   -  listenToDeviceByIndex(index: number)");
     console.log("   -  mapDeviceByIndex(index: number)");
     console.log("   -  getSavedDevices()");
@@ -237,10 +238,16 @@ async function logAllControllerChanges() {
 function listenToDeviceByIndex(index) {
     const devices = listDevices();
     const deviceMeta = devices[index];
-    listenToDeviceByMeta(deviceMeta).catch((err: Error) => console.error(err));
+    listenToDeviceByMeta(deviceMeta)
+    .then((controller) => {
+        setInterval(() => {
+            console.log(cyan(`5 second checkin on ${deviceMeta.product}`), controller.lastData);
+        }, 5000);
+    })
+    .catch((err: Error) => console.error(err));
 }
 
-async function listenToDeviceByMeta(deviceMeta) {
+async function listenToDeviceByMeta(deviceMeta): Promise<GameController> {
     const gameController = new GameController();
     gameController.deviceMeta = deviceMeta;
     // const device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
@@ -254,6 +261,7 @@ async function listenToDeviceByMeta(deviceMeta) {
         gameController.events.on("change", (data) => {
             console.log(`${deviceMeta.product} new data`, data.length, data)
     
+            // map for only nintendo controller
             const map = {
                 a: [47, 63].indexOf(data[5]) >= 0,
                 b: [31, 63].indexOf(data[5]) >= 0,
@@ -265,23 +273,36 @@ async function listenToDeviceByMeta(deviceMeta) {
                 up: data[4] === 0
             }
     
-            console.log("data5", map, "[0]", data[0], "[1]", data[1], "[2]", data[2], "[3]", data[3], "[4]", data[4], "[5]", data[5], "[6]", data[6], "[7]", data[7])
+            const smallMap = {};
+
+            Object.keys(map).forEach(name => {
+                if(map[name]){
+                    smallMap[name] = map[name]
+                }
+            })
+            console.log(`${deviceMeta.product} map: `, smallMap)
+            // console.log("BIT map", "[0]", data[0], "[1]", data[1], "[2]", data[2], "[3]", data[3], "[4]", data[4], "[5]", data[5], "[6]", data[6], "[7]", data[7])
             // listenToDeviceByIndex(22);
         });
         
-        openDevices.push(gameController.device);
+        // openDevices.push(gameController.device);
 
-        console.log(cyan("Listening to device: ") + deviceMeta.product)
+        console.log(cyan("Listening to device: ") + deviceMeta.product);
+
+        return gameController;
     }).catch((err: Error) => {
         gameController.close();
         return Promise.reject(err);
     });
 }
 
-function listenMapGameController(): Promise<any> {
+function pairGameController(): Promise<any> {
     const controllers = getGameControllers();
+
     listenToControllers(controllers)
     mapControllersIdle(controllers);
+
+    console.log("Listening to controllers: ", controllers.map(controller => controller.deviceMeta.product))
     
     return requestOneControllerFrom(controllers).then((controller) => {
         closeControllers(controllers);
