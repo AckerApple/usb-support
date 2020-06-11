@@ -3,6 +3,53 @@ import * as HID from 'node-hid';
 
 const repl = require('repl');
 
+const commands = {
+    "menu": {
+        help: "Tells you what's available",
+        action: menu
+    },
+
+    "devices": {
+        help: "List USB devices",
+        action: consoleDevices
+    },
+
+    "logAllControllerChanges": {
+        help: "Every time a usb controller has a change it will be listed",
+        action: logAllControllerChanges
+    },
+
+    "logAllDeviceChanges": {
+        help: "Every time a usb device has a change it will be listed",
+        action: logAllDeviceChanges
+    },
+
+    "saved-devices": {
+        help: "List saved USB devices",
+        action: consoleSavedDevices
+    },
+
+    "dump-devices": {
+        help: "Depp detail list USB devices",
+        action: consoleDumpDevices
+    },
+
+    "dump-controllers": {
+        help: "Depp detail list USB devices",
+        action: consoleDumpControllers
+    },
+
+    "game-devices": {
+        help: "List USB devices known to be game controllers",
+        action: consoleGameDevices
+    },
+
+    "map-controller": {
+        help: "List USB devices known to be game controllers",
+        action: listenMapGameController
+    }
+};
+
 function runApp() {
     console.log("\n\n\n");
     console.log( pink("Welcome to gamepad cli helper") );
@@ -37,37 +84,12 @@ function runApp() {
             });
         }
     }
-
-    r.defineCommand("menu", {
-        help: "Tells you what's available",
-        action: action(menu)
+    Object.keys(commands).forEach((name,i) => {
+        r.defineCommand(name, {
+            help: commands[name].help,
+            action: action(commands[name].action)
+        });
     });
-
-    r.defineCommand("devices", {
-        help: "List USB devices",
-        action: action(consoleDevices)
-    });
-
-    r.defineCommand("dump-devices", {
-        help: "Depp detail list USB devices",
-        action: action(consoleDumpDevices)
-    });
-
-    r.defineCommand("dump-controllers", {
-        help: "Depp detail list USB devices",
-        action: action(consoleDumpControllers)
-    });
-
-    r.defineCommand("game-devices", {
-        help: "List USB devices known to be game controllers",
-        action: action(consoleGameDevices)
-    });
-
-    r.defineCommand("map-controller", {
-        help: "List USB devices known to be game controllers",
-        action: action(listenMapGameController)
-    });
-    // r.setupHistory("menu", menuCommand)
 
     Object.defineProperty(r.context, 'm', {
         configurable: false,
@@ -79,10 +101,13 @@ function runApp() {
 }
 
 function menu() {
-    console.log(cyan("COMMANDS") + ": .menu, .devices, .game-devices, .dump-contollers, .map-controller");
+    console.log(cyan("COMMANDS") + ": " + Object.keys(commands).map(name => "." + name).join(", "));
     console.log(cyan("METHODS") + ":");
     console.log("   -  listenToDeviceByIndex(index: number)");
     console.log("   -  mapDeviceByIndex(index: number)");
+    console.log("   -  getSavedDevices()");
+    console.log();
+    console.log(cyan("Type .help for list of commands"));
 }
 
 runApp();
@@ -132,23 +157,102 @@ function consoleDumpControllers() {
     return devices;
 }
 
+function getSavedDevices() {
+    const devicesJson = fs.readFileSync(path.join(__dirname, "controllers.json")).toString();
+    const devices = JSON.parse(devicesJson);
+    return devices;
+}
+
+function consoleSavedDevices() {
+    const devices = getSavedDevices();
+    console.log()
+    const log = Object.keys(devices).map(vendor => {
+        return Object.keys(devices[vendor]).map(product => {
+            const deviceMeta = devices[vendor][product].deviceMeta;
+            return {
+                manufacturer: deviceMeta.manufacturer,
+                product: deviceMeta.product,
+                interface: deviceMeta.interface,
+                usagePage: deviceMeta.usagePage,
+                usage: deviceMeta.usage
+            };
+        });
+    }).reduce((end, arrayOfArrays) => {
+        end.push(...arrayOfArrays)
+        return end;
+    },[]);
+
+    console.log(log)
+    console.log()
+    console.log(cyan(`${log.length} saved devices`));
+}
+
 function consoleDevices() {
     const devices = listDevices();
     console.log();
-    console.log(devices.map((device, i) => `[${i}] ${device.manufacturer || "Unkown Make"}: ${device.product}\n\tvendorId:${device.vendorId} productId:${device.productId}`).join("\n"));
+    const log = devices.map((device, i) => `[${i}] ${device.manufacturer || "Unkown Make"}: ${device.product}\n\tvendorId:${device.vendorId} productId:${device.productId}`).join("\n");
+    console.log(log);
     return devices;
+}
+
+async function logAllDeviceChanges() {
+    const devices = listDevices();
+    for (let x = devices.length - 1; x >= 0; --x) {
+        const device = devices[x]
+        try {
+            console.log(`-> Opening device ${x} ` + device.product);
+            await listenToDeviceByMeta(device).then(() => {
+                console.log("-> Opened " + device.product);
+            }).catch((err: Error) => {
+                console.log(red(`-> Failed to open device ${x} ` + device.product));
+                console.error(red(err.message))
+            })
+        } catch (err) {
+            console.log(red(`-> Failed to open device ${x} ` + device.product));
+            console.error(red(err.message));
+        }
+    }
+}
+
+async function logAllControllerChanges() {
+    // const devices = listDevices();
+    const devices = getGameControllers();
+    for (let x = 0; x < devices.length; ++x) {
+        const device = devices[x]
+        try {
+            console.log(`-> Opening device ${x} ` + device.deviceMeta.product);
+            await listenToDeviceByMeta(device.deviceMeta).then(() => {
+                console.log("-> Opened " + device.deviceMeta.product);
+            }).catch((err: Error) => {
+                console.log(red(`-> Failed to open device ${x} ` + device.deviceMeta.product));
+                console.error(red(err.message))
+            })
+        } catch (err) {
+            console.log(red(`-> Failed to open device ${x} ` + device.deviceMeta.product));
+            console.error(red(err.message));
+        }
+    }
 }
 
 function listenToDeviceByIndex(index) {
     const devices = listDevices();
     const deviceMeta = devices[index];
+    listenToDeviceByMeta(deviceMeta).catch((err: Error) => console.error(err));
+}
+
+async function listenToDeviceByMeta(deviceMeta) {
     const gameController = new GameController();
     gameController.deviceMeta = deviceMeta;
-    const device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
-    gameController.device = device;
-    gameController.listen().paramIdle().then(() => {
+    // const device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
+    // gameController.device = device;
+    gameController.listen();
+    
+    console.log(cyan("capturing idle state of " + deviceMeta.product));
+    
+    return gameController.paramIdle().then(() => {
+        console.log(cyan("idle state captured of " + deviceMeta.product));
         gameController.events.on("change", (data) => {
-            console.log("new data", data.length, data)
+            console.log(`${deviceMeta.product} new data`, data.length, data)
     
             const map = {
                 a: [47, 63].indexOf(data[5]) >= 0,
@@ -162,13 +266,16 @@ function listenToDeviceByIndex(index) {
             }
     
             console.log("data5", map, "[0]", data[0], "[1]", data[1], "[2]", data[2], "[3]", data[3], "[4]", data[4], "[5]", data[5], "[6]", data[6], "[7]", data[7])
-            // listenToDeviceByIndex(22)
-        })
+            // listenToDeviceByIndex(22);
+        });
+        
+        openDevices.push(gameController.device);
+
+        console.log(cyan("Listening to device: ") + deviceMeta.product)
+    }).catch((err: Error) => {
+        gameController.close();
+        return Promise.reject(err);
     });
-
-    openDevices.push(gameController.device);
-
-    return "";
 }
 
 function listenMapGameController(): Promise<any> {
@@ -191,6 +298,10 @@ function pink(message: string) {
 
 function cyan(message: string) {
     return `\x1b[36m${message}\x1b[0m`;
+}
+
+function red(message: string) {
+    return `\x1b[31m${message}\x1b[0m`;
 }
 
 function closeControllers(controllers: GameController[]) {
@@ -251,12 +362,12 @@ function getGameControllers(): GameController[] {
     return listGameDevices().map(item => {
         const gameController = new GameController();
         gameController.deviceMeta = item.device;
-        gameController.device = new HID.HID(item.device.vendorId, item.device.productId);
+        // gameController.device = new HID.HID(item.device.vendorId, item.device.productId);
         return gameController;
     });
 }
 
-function mapDeviceByIndex(index) {
+export function mapDeviceByIndex(index) {
     const gameController = new GameController();
     const devices = listDevices();
     const deviceMeta = devices[index];

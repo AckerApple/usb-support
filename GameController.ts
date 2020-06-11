@@ -136,8 +136,13 @@ export class GameController {
         }
 
         if (!this.device) {
-            if (this.deviceMeta) {
-                this.device = new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
+            if (this.deviceMeta) {                
+                try {
+                    this.device = new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
+                } catch (err) {
+                    err.message = err.message + `(${this.deviceMeta.product})`
+                    throw err;
+                }
             } else {
                 throw new Error("GameController.deviceMeta has not been set. Need vendorId and productId");
             }
@@ -180,6 +185,7 @@ export class GameController {
         }
         this.events.removeAllListeners();
         // delete this.device;
+        // this.device.close();
     }
 
     async mapIdle() {
@@ -187,30 +193,39 @@ export class GameController {
             return Promise.resolve();
         }
 
-        return new Promise((res) => {
-            /*for (var x in this.device) {
-                console.log(x, this.device[x]);
-            }*/
+        return new Promise((res, rej) => {
+            console.log("Lets read " + this.deviceMeta.product);
 
-            console.log("Lets read");
+            const timeout = setTimeout(() => {
+                rej(new Error(`Could not map idle state of ${this.deviceMeta.product} in timely fashion`))
+            }, 1000);
+
+            const dataReader = (data) => {
+                clearTimeout(timeout);
+                this.idle = data;
+                res();
+                this.events.removeListener("data", dataReader);
+            };
 
             this.device.read((err, data) => {
-                console.log("read", data)
+                if (err) {
+                    rej(new Error(`Could not map idle state of ${this.deviceMeta.product} due to ${err.message}`))
+                    return;
+                }
+
+                console.log("read " + this.deviceMeta.product, data)
+                this.idle = this.lastData = data;
+                dataReader(data);
             });
             
+            /*
             console.log("Lets read sync");
-            
             const readSync = this.device.readSync();
             console.log("readSync", readSync)
+            */
 
-            this.events.on("data", (data) => {
-                console.log("data", data);
-            });
-
-            this.events.once("data", () => {
-                this.idle = this.lastData;
-                res();
-            });
+            this.events.on("data", dataReader);
+            this.events.once("data", dataReader);
         });
     }
 
