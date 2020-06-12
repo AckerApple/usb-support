@@ -393,7 +393,8 @@ export function mapDeviceByIndex(index) {
     const devices = listDevices();
     const deviceMeta = devices[index];
     gameController.deviceMeta = deviceMeta;
-    gameController.device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
+    gameController.listen()
+    // gameController.device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
     mapController(gameController);
     openDevices.push(gameController.device);
     return "";

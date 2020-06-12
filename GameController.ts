@@ -17,6 +17,7 @@ export interface IDevice {
 }
 
 export interface IDeviceMeta {
+    path: string;
     interface: number;
     usage: number;
     usagePage: number;
@@ -137,12 +138,17 @@ export class GameController {
 
         if (!this.device) {
             if (this.deviceMeta) {                
-                try {
-                    this.device = new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
-                } catch (err) {
-                    err.message = err.message + `(${this.deviceMeta.product})`
-                    throw err;
-                }
+                    try {
+                        this.device = new HID.HID(this.deviceMeta.path);
+                    } catch (err) {
+                        console.warn("Could not connect by path", err);
+                        try {                    
+                            this.device = new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
+                        } catch (err) {
+                            err.message = err.message + `(${this.deviceMeta.product})`
+                            throw err;
+                        }
+                    }
             } else {
                 throw new Error("GameController.deviceMeta has not been set. Need vendorId and productId");
             }
