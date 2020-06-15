@@ -65,6 +65,70 @@
       }
     }
   },
+  "1356": {
+    "3290": {
+      "deviceMeta": {
+        "vendorId": 1356,
+        "productId": 3290,
+        "path": "/dev/hidraw3",
+        "serialNumber": "",
+        "manufacturer": "Sony Interactive Entertainment",
+        "product": "Controller",
+        "release": 256,
+        "interface": 0
+      },
+      "map": {
+        "up": {
+          "pos": 1,
+          "value": 4,
+          "idle": 20,
+          "updatedAt": 1592263383937
+        },
+        "down": {
+          "pos": 1,
+          "value": 36,
+          "idle": 20,
+          "updatedAt": 1592263385272
+        },
+        "left": {
+          "pos": 1,
+          "value": 16,
+          "idle": 20,
+          "updatedAt": 1592263386144
+        },
+        "right": {
+          "pos": 1,
+          "value": 24,
+          "idle": 20,
+          "updatedAt": 1592263387080
+        },
+        "a": {
+          "pos": 0,
+          "value": 2,
+          "idle": 0,
+          "updatedAt": 1592263388512
+        },
+        "b": {
+          "pos": 0,
+          "value": 4,
+          "idle": 0,
+          "updatedAt": 1592263389536
+        },
+        "select": {
+          "pos": 1,
+          "value": 21,
+          "idle": 20,
+          "updatedAt": 1592263390592
+        },
+        "start": {
+          "pos": 1,
+          "value": 22,
+          "idle": 20,
+          "updatedAt": 1592263391600
+        }
+      }
+    }
+  },
   "2064": {
     "58625": {
       "listing": {

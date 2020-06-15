@@ -146,6 +146,7 @@ export class GameController {
                             this.device = new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
                         } catch (err) {
                             err.message = err.message + `(${this.deviceMeta.product})`
+                            err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
                             throw err;
                         }
                     }

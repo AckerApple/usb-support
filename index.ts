@@ -1,6 +1,8 @@
 import { ISubscriber, IDeviceMeta, IDevice, GameController } from "./GameController";
 import * as HID from 'node-hid';
 
+// HID.setDriverType('libusb');
+
 const repl = require('repl');
 
 const commands = {
@@ -139,6 +141,7 @@ function listGameDevices(): {index: number, device: IDeviceMeta}[] {
 function isDeviceController(device: IDeviceMeta): boolean {
     return (device.usage === 5 && device.usagePage === 1)
     || (device.usage === 4 && device.usagePage === 1)
+    || device.product.toLowerCase().indexOf("controller") >= 0
     || device.product.toLowerCase().indexOf("game") >= 0
     || device.product.toLowerCase().indexOf("joystick") >= 0;
 }
