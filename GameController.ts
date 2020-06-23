@@ -280,6 +280,15 @@ export class GameController {
 
         return rtn;
     }
+
+    getLastPins() {
+        return [...this.lastData.map((v,i) => v)];
+    }
+
+    getLastPinsString() {
+        
+        return this.getLastPins().map((v, i) => i + ":" + ("000" + v).slice(-3)).join(" | ");
+    }
 }
 
 function whenCallbackChanges(callback, eachArgument) {

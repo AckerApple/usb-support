@@ -247,8 +247,8 @@ function listenToDeviceByIndex(index) {
     listenToDeviceByMeta(deviceMeta)
     .then((controller) => {
         setInterval(() => {
-            console.log(cyan(`5 second checkin on ${deviceMeta.product}`), controller.lastData);
-        }, 5000);
+            console.log(cyan(`10 second checkin on ${deviceMeta.product.trim()}`), controller.getLastPinsString());
+        }, 10000);
     })
     .catch((err: Error) => console.error(err));
 }
@@ -265,33 +265,10 @@ async function listenToDeviceByMeta(deviceMeta): Promise<GameController> {
     return gameController.paramIdle().then(() => {
         console.log(cyan("idle state captured of " + deviceMeta.product));
         gameController.events.on("change", (data) => {
-            console.log(`${deviceMeta.product} new data`, data.length, data)
-    
-            // map for only nintendo controller
-            const map = {
-                a: [47, 63].indexOf(data[5]) >= 0,
-                b: [31, 63].indexOf(data[5]) >= 0,
-                start: [32, 48].indexOf(data[6]) >= 0,
-                select: [16, 48].indexOf(data[6]) >= 0,
-                right: data[3] === 255,
-                down: data[4] === 255,
-                left: data[3] === 0,
-                up: data[4] === 0
-            }
-    
-            const smallMap = {};
+            const product = deviceMeta.product.trim();
+            console.log(`${product} map: `, gameController.getLastPinsString());
 
-            Object.keys(map).forEach(name => {
-                if(map[name]){
-                    smallMap[name] = map[name]
-                }
-            })
-            console.log(`${deviceMeta.product} map: `, smallMap)
-            // console.log("BIT map", "[0]", data[0], "[1]", data[1], "[2]", data[2], "[3]", data[3], "[4]", data[4], "[5]", data[5], "[6]", data[6], "[7]", data[7])
-            // listenToDeviceByIndex(22);
         });
-        
-        // openDevices.push(gameController.device);
 
         console.log(cyan("Listening to device: ") + deviceMeta.product);
 
