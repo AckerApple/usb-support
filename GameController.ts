@@ -289,6 +289,55 @@ export class GameController {
         
         return this.getLastPins().map((v, i) => i + ":" + ("000" + v).slice(-3)).join(" | ");
     }
+    
+    tempAxisMemoryArray: {
+        updatedAt: number,
+        repeats: number,
+        pin: number,
+        min: number,
+        max: number
+    }[] = []
+    
+    axisDataDiscoverer(data) {
+        data.forEach((pinValue, pin) => {
+            for (let mPinIndex = this.tempAxisMemoryArray.length - 1; mPinIndex >= 0; --mPinIndex) {
+                const pinMemory = this.tempAxisMemoryArray[mPinIndex];
+                
+                if (pinMemory.pin !== pin) {
+                    continue;
+                }
+
+                // check cancel by min
+                if (Math.abs(pinMemory.min - pinValue) > 10) {
+                    this.tempAxisMemoryArray.splice(mPinIndex, 1);
+                    return;
+                }
+                
+                // check cancel by max
+                if (Math.abs(pinMemory.max - pinValue) > 10) {
+                    this.tempAxisMemoryArray.splice(mPinIndex, 1);
+                    return;
+                }
+
+                // recording
+
+                if(pinMemory.repeats === 5) {
+                    // record its an axis
+                    return;
+                }
+            }
+
+            // todo, record new
+            this.tempAxisMemoryArray.push({
+                updatedAt: Date.now(),
+                repeats: 0,
+                pin,
+                min: pinValue,
+                max: pinValue
+            });
+        });
+    }
+
 }
 
 function whenCallbackChanges(callback, eachArgument) {

@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^13.13.5",
-    "node-hid": "^1.2.0"
+    "node-hid": "^1.2.0",
+    "ws": "^7.3.0"
   },
   "devDependencies": {
     "typescript": "^3.9.2"
