@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { IDeviceMeta } from '../../../typings';
-import { isDeviceController } from '../../../isDeviceController';
+import { devicesMatch, isDeviceController } from '../../../index.shared';
 
 
 interface IDeviceMetaState extends IDeviceMeta {
   subscribed: boolean
+  lastEvent: any
 }
 @Component({
   selector: 'app-root',
@@ -17,7 +18,7 @@ export class AppComponent {
   connection = new WebSocket(this.url)
 
   devices: IDeviceMetaState[] = []
-  listeners: IDeviceMeta[] = []
+  listeners: IDeviceMetaState[] = []
   controllers: IDeviceMeta[] = []
 
   constructor() {
@@ -47,7 +48,7 @@ export class AppComponent {
             this.listeners = data.devices
             this.listeners.forEach(lDevice => {
               this.devices.forEach(device => {
-                if (device.productId === lDevice.productId && device.vendorId === lDevice.vendorId) {
+                if (devicesMatch(device, lDevice)) {
                   device.subscribed = true
                 }
               })
@@ -55,7 +56,12 @@ export class AppComponent {
             break
 
           case 'deviceEvent.change':
-            console.log('deviceEvent.change', data.device, data.event)
+            const matchedListener = this.listeners.find(device => devicesMatch(device, data.device))
+
+            if (matchedListener) {
+              matchedListener.lastEvent = data.event
+            }
+
             break
 
           default:

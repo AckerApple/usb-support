@@ -1,5 +1,6 @@
 import * as WebSocket from 'ws'
 import { GameController } from '../GameController';
+import { devicesMatch } from '../index.shared'
 import { listenToDeviceByMeta, listDevices } from '../index.utils'
 import { IDeviceMeta } from '../typings';
 
@@ -90,15 +91,19 @@ class HandlerClass {
   }
 
   async listenToDevice(device: IDeviceMeta) {
-    const gameController = await listenToDeviceByMeta(device)
-    gameController.events.addListener('change', event => {
+    let gameController = scope.usbListeners.find(gc => devicesMatch(gc.deviceMeta, device))
 
-      console.log('changed')
+    if (!gameController) {
+      gameController = await listenToDeviceByMeta(device)
+      scope.usbListeners.push( gameController )
+    }
+
+    gameController.events.addListener('change', event => {
       this.ws.send(JSON.stringify({
         type: 'deviceEvent.change', device, event
       }))
     })
-    scope.usbListeners.push( gameController )
+
     this.emitListeners()
   }
 }

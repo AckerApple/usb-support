@@ -1,6 +1,6 @@
 import { ISubscriber, GameController } from "./GameController";
 import { listDevices, listenToDeviceByMeta, listGameDevices } from './index.utils'
-import { isDeviceController } from './isDeviceController'
+import { isDeviceController } from './index.shared'
 
 // HID.setDriverType('libusb');
 
