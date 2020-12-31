@@ -1,6 +1,7 @@
 import * as HID from 'node-hid';
 import { EventEmitter } from 'events';
 import { promisify } from 'util';
+import { IDeviceMeta } from './typings';
 
 export interface IDevice {
     readSync: () => number[];
@@ -14,17 +15,6 @@ export interface IDevice {
     pause: () => any;
     on: (type: string, data: any) => any;
     close: () => any;
-}
-
-export interface IDeviceMeta {
-    path: string;
-    interface: number;
-    usage: number;
-    usagePage: number;
-    productId: number;
-    vendorId: number;
-    manufacturer: string;
-    product: string;
 }
 
 interface IButtonState {
@@ -41,7 +31,7 @@ export interface ISubscriber {
 export class GameController {
     listener: (data: number[]) => any
     device: IDevice;
-    
+
     deviceMeta: IDeviceMeta
 
     events: EventEmitter = new EventEmitter(); // change, idle, notIdle
@@ -54,7 +44,7 @@ export class GameController {
     allowsInterfacing() {
         return this.deviceMeta.interface === 0 ? false : true;
     }
-    
+
     map: { [string: string]: IButtonState | null } = {
         up: null,
         down: null,
@@ -90,7 +80,7 @@ export class GameController {
             }
 
             const lastChangedAt = this.changedAt;
-            
+
             timeout = setTimeout(() => {
                 if (this.changedAt === lastChangedAt && !this.isCurrentState(startState)) {
                     callback();
@@ -137,12 +127,12 @@ export class GameController {
         }
 
         if (!this.device) {
-            if (this.deviceMeta) {                
+            if (this.deviceMeta) {
                     try {
                         this.device = new HID.HID(this.deviceMeta.path);
                     } catch (err) {
                         console.warn("Could not connect by path", err);
-                        try {                    
+                        try {
                             this.device = new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
                         } catch (err) {
                             err.message = err.message + `(${this.deviceMeta.product})`
@@ -157,7 +147,7 @@ export class GameController {
 
         const onNewData = (data) => {
             this.changedAt = Date.now();
-            
+
             if (this.idle.length || this.deviceMeta.interface == -1) {
                 this.isIdle = this.determineIdleStateBy(data);
 
@@ -171,13 +161,13 @@ export class GameController {
             this.events.emit("change", data);
         }
         const callback = whenCallbackChanges(onNewData, (a) => a.toString());
-        
+
         this.listener = (data: number[]) => {
             this.lastData = data;
             this.events.emit("data", data);
             callback(data)
         };
-        
+
         this.device.addListener("data", this.listener);
 
         return this;
@@ -195,9 +185,9 @@ export class GameController {
         // this.device.close();
     }
 
-    async mapIdle() {
+    async mapIdle(): Promise<GameController> {
         if (this.allowsInterfacing()) {
-            return Promise.resolve();
+            return Promise.resolve(this);
         }
 
         return new Promise((res, rej) => {
@@ -208,7 +198,7 @@ export class GameController {
             const dataReader = (data) => {
                 clearTimeout(timeout);
                 this.idle = data;
-                res();
+                res(this);
                 this.events.removeListener("data", dataReader);
             };
 
@@ -221,7 +211,7 @@ export class GameController {
                 this.idle = this.lastData = data;
                 dataReader(data);
             });
-            
+
             /*
             console.log("Lets read sync");
             const readSync = this.device.readSync();
@@ -233,9 +223,9 @@ export class GameController {
         });
     }
 
-    async paramIdle() {
+    async paramIdle(): Promise<GameController> {
         if (this.idle.length) {
-            return Promise.resolve();
+            return Promise.resolve(this);
         }
 
         return this.mapIdle();
@@ -286,10 +276,10 @@ export class GameController {
     }
 
     getLastPinsString() {
-        
+
         return this.getLastPins().map((v, i) => i + ":" + ("000" + v).slice(-3)).join(" | ");
     }
-    
+
     tempAxisMemoryArray: {
         updatedAt: number,
         repeats: number,
@@ -297,12 +287,12 @@ export class GameController {
         min: number,
         max: number
     }[] = []
-    
+
     axisDataDiscoverer(data) {
         data.forEach((pinValue, pin) => {
             for (let mPinIndex = this.tempAxisMemoryArray.length - 1; mPinIndex >= 0; --mPinIndex) {
                 const pinMemory = this.tempAxisMemoryArray[mPinIndex];
-                
+
                 if (pinMemory.pin !== pin) {
                     continue;
                 }
@@ -312,7 +302,7 @@ export class GameController {
                     this.tempAxisMemoryArray.splice(mPinIndex, 1);
                     return;
                 }
-                
+
                 // check cancel by max
                 if (Math.abs(pinMemory.max - pinValue) > 10) {
                     this.tempAxisMemoryArray.splice(mPinIndex, 1);

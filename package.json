@@ -5,17 +5,23 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node index"
+    "start": "npm-run-all --parallel start:socket-server start:webapp",
+    "start:cli": "ts-node index",
+    "start:socket-server": "nodemon --watch 'server/**/*.ts' --ignore 'server/**/*.spec.ts' --exec 'ts-node' server/index.ts",
+    "start:webapp": "cd webapp && npm start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^13.13.5",
-    "node-hid": "^1.2.0",
-    "ws": "^7.3.0"
+    "@types/node": "^14.14.17",
+    "node-hid": "^2.1.1",
+    "nodemon": "^2.0.6",
+    "npm-run-all": "^4.1.5",
+    "usb-detection": "^4.10.0",
+    "ws": "^7.4.2"
   },
   "devDependencies": {
-    "typescript": "^3.9.2"
+    "typescript": "^4.1.3"
   }
 }

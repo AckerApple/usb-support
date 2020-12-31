@@ -1,26 +1,34 @@
 import * as WebSocket from 'ws'
-import { listDevices } from '../index.utils'
+import { GameController } from '../GameController';
+import { listenToDeviceByMeta, listDevices } from '../index.utils'
+import { IDeviceMeta } from '../typings';
 
+const scope: {
+  connections: WebSocket.Server[]
+  usbListeners: GameController[]
+} = {
+  connections: [],
+  usbListeners: []
+}
 
 const wss = new WebSocket.Server({ port: 8080 })
-let connections: WebSocket.Server[] = []
 
 var usbDetect = require('usb-detection');
 usbDetect.startMonitoring();
 usbDetect.on('change', device => {
-  console.log('usb change', {connections: connections.length})
+  console.log('usb change', {connections: scope.connections.length})
   setTimeout(() => {
-    connections.forEach(ws => new HandlerClass(ws).refresh());
+    scope.connections.forEach(ws => new HandlerClass(ws).refresh());
   }, 500)
 });
 
 wss.on('connection', ws => {
-  connections.push(ws)
-  console.log('connection opened', {connections: connections.length})
+  scope.connections.push(ws)
+  console.log('connection opened', {connections: scope.connections.length})
   ws.on('message', messageHandler(ws))
   ws.on('close', () => {
-    connections = connections.filter(conn => conn !== ws)
-    console.log('connection closed', {connections: connections.length})
+    scope.connections = scope.connections.filter(conn => conn !== ws)
+    console.log('connection closed', {connections: scope.connections.length})
   })
   // ws.send('Hello! Message From Server!!')
 })
@@ -39,6 +47,10 @@ function messageHandler(ws) {
           handlerClass.refresh()
           break
 
+        case 'listenToDevice':
+          handlerClass.listenToDevice(request.device)
+          break
+
         default:
           console.error('Unknown message type' + request.type)
       }
@@ -53,14 +65,40 @@ class HandlerClass {
   constructor(public ws: WebSocket.Server) {}
 
   refresh() {
+    this.emitDevices()
+    this.emitListeners()
+  }
+
+  emitDevices() {
     const devices = listDevices()
 
     console.log('devices', devices.length)
 
-    const reply = {
+    const payload = {
       type: 'devices', devices
     }
 
-    this.ws.send(JSON.stringify(reply))
+    this.ws.send(JSON.stringify(payload))
+  }
+
+  emitListeners() {
+    const payload = {
+      type: 'listeners',
+      devices: scope.usbListeners.map(gameController => gameController.deviceMeta)
+    }
+    this.ws.send(JSON.stringify(payload))
+  }
+
+  async listenToDevice(device: IDeviceMeta) {
+    const gameController = await listenToDeviceByMeta(device)
+    gameController.events.addListener('change', event => {
+
+      console.log('changed')
+      this.ws.send(JSON.stringify({
+        type: 'deviceEvent.change', device, event
+      }))
+    })
+    scope.usbListeners.push( gameController )
+    this.emitListeners()
   }
 }
