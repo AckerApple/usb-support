@@ -1,6 +1,6 @@
 import * as HID from 'node-hid';
-import { IDeviceMeta } from "./typings";
-import { isDeviceController } from './index.shared';
+import { IDeviceMeta } from "../shared/typings";
+import { isDeviceController } from '../index.shared';
 import { GameController } from "./GameController";
 
 export function listDevices(): IDeviceMeta[] {

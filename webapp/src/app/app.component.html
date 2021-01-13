@@ -18,6 +18,25 @@
     <textarea cols="60" rows="12" wrap="off">
       {{listeners | json}}
     </textarea>
+    <div *ngFor="let item of listeners" style="display:flex;flex-wrap:wrap">
+      <div *ngFor="let value of item.lastEvent?.data" style="border:1px solid black;border-radius: 5px;margin:1em;padding:.5em;">
+        {{value}}
+      </div>
+    </div>
+  </div>
+
+  <div style="flex-grow:1">
+    <h3>savedControllers</h3>
+    <textarea cols="60" rows="12" wrap="off">
+      {{savedControllers | json}}
+    </textarea>
+  </div>
+
+  <div style="flex-grow:1">
+    <h3>debug</h3>
+    <textarea cols="60" rows="12" wrap="off">
+      {{debug | json}}
+    </textarea>
   </div>
 </div>
 

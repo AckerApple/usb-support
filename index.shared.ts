@@ -1,4 +1,4 @@
-import { IDeviceMeta } from "./typings";
+import { IDeviceMeta } from "./shared/typings";
 
 export function isDeviceController(device: IDeviceMeta): boolean {
   return (device.usage === 5 && device.usagePage === 1)

@@ -1,8 +1,11 @@
 import * as WebSocket from 'ws'
-import { GameController } from '../GameController';
+import { GameController } from './GameController';
 import { devicesMatch } from '../index.shared'
-import { listenToDeviceByMeta, listDevices } from '../index.utils'
-import { IDeviceMeta } from '../typings';
+import { listenToDeviceByMeta, listDevices } from './index.utils'
+import { IDeviceMeta } from '../shared/typings';
+import { socketPort } from '../shared/config.json'
+import * as controllers from '../controllers.json'
+import { Subscription } from 'rxjs';
 
 const scope: {
   connections: WebSocket.Server[]
@@ -12,7 +15,10 @@ const scope: {
   usbListeners: []
 }
 
-const wss = new WebSocket.Server({ port: 8080 })
+const wss = new WebSocket.Server({
+  port: socketPort,
+  host: 'ackers-mac-mini.local'
+})
 
 var usbDetect = require('usb-detection');
 usbDetect.startMonitoring();
@@ -34,7 +40,7 @@ wss.on('connection', ws => {
   // ws.send('Hello! Message From Server!!')
 })
 
-console.log('websocket listening on port 8080')
+console.log('websocket listening on port ' + socketPort)
 
 function messageHandler(ws) {
   const handlerClass = new HandlerClass(ws)
@@ -44,6 +50,10 @@ function messageHandler(ws) {
       console.log('parsed message', request)
 
       switch (request.type) {
+        case 'getSavedControllers':
+          handlerClass.emitSavedControllers();
+          break
+
         case 'refresh':
           handlerClass.refresh()
           break
@@ -52,17 +62,22 @@ function messageHandler(ws) {
           handlerClass.listenToDevice(request.device)
           break
 
+        case 'unsubscribeToDevice':
+          handlerClass.unsubscribeToDevice(request.device)
+          break
+
         default:
           console.error('Unknown message type' + request.type)
       }
     } catch (err) {
-      console.log(`Invalid message => ${message}`)
-      console.error(err);
+      console.error('Invalid message', {message, err})
     }
   }
 }
 
 class HandlerClass {
+  subs = new Subscription()
+
   constructor(public ws: WebSocket.Server) {}
 
   refresh() {
@@ -83,11 +98,23 @@ class HandlerClass {
   }
 
   emitListeners() {
+    const devices = scope.usbListeners.map(gameController => gameController.deviceMeta)
     const payload = {
-      type: 'listeners',
-      devices: scope.usbListeners.map(gameController => gameController.deviceMeta)
+      type: 'listeners', devices
     }
+    console.log('devices', devices.length)
     this.ws.send(JSON.stringify(payload))
+  }
+
+  unsubscribeToDevice(device: IDeviceMeta) {
+    const gameController = scope.usbListeners.find(gc => devicesMatch(gc.deviceMeta, device))
+    if (gameController) {
+      scope.usbListeners = scope.usbListeners.filter(
+        gc => !devicesMatch(gc.deviceMeta, device)
+      )
+      gameController.close()
+      this.emitListeners()
+    }
   }
 
   async listenToDevice(device: IDeviceMeta) {
@@ -98,12 +125,24 @@ class HandlerClass {
       scope.usbListeners.push( gameController )
     }
 
-    gameController.events.addListener('change', event => {
-      this.ws.send(JSON.stringify({
-        type: 'deviceEvent.change', device, event
-      }))
-    })
+    gameController.subs.add(
+      gameController.change.subscribe(event => {
+        this.ws.send(JSON.stringify({
+          type: 'deviceEvent.change', device, event
+        }))
+      })
+    )
 
     this.emitListeners()
   }
+
+  emitSavedControllers() {
+    this.ws.send(JSON.stringify({
+      type: 'savedControllers', controllers
+    }))
+  }
 }
+
+const closer = () => wss.close()
+process.once('exit', closer)
+process.once('SIGINT', closer)
