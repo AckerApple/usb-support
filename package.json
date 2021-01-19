@@ -5,10 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm-run-all --parallel start:socket-server start:webapp",
+    "start": "npm-run-all --parallel start:webapp start:socket-server",
     "start:cli": "ts-node index",
     "start:socket-server": "nodemon --watch 'server/**/*.ts' --ignore 'server/**/*.spec.ts' --exec 'ts-node' server/index.ts",
-    "start:webapp": "cd webapp && npm start"
+    "start:webapp": "cd webapp && npm start",
+    "build": "cd webapp && npm run build",
+    "save": "git add . && git commit -m \"update\" && git push"
   },
   "keywords": [],
   "author": "",

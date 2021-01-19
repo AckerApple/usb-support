@@ -146,3 +146,4 @@ class HandlerClass {
 const closer = () => wss.close()
 process.once('exit', closer)
 process.once('SIGINT', closer)
+process.once('beforeExit', () => closer)

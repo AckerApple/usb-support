@@ -4,10 +4,13 @@ import GameControlEvents from './GameControlEvents'
 import mapController from './mapController.function'
 import { socketHost, socketPort } from '../../../shared/config.json'
 import { devicesMatch, isDeviceController } from '../../../index.shared'
+import decodeDeviceMetaState from './decodeControllerButtonStates.function'
 
-interface IDeviceMetaState extends IDeviceMeta {
+export interface IDeviceMetaState extends IDeviceMeta {
   subscribed: boolean
   lastEvent: any
+  map?: any // populated if matched to savedController
+  pressed?: string[] // populated if matched to savedController
 }
 @Component({
   selector: 'app-root',
@@ -22,7 +25,9 @@ export class AppComponent {
   devices: IDeviceMetaState[] = []
   listeners: IDeviceMetaState[] = []
   controllers: IDeviceMeta[] = []
-  savedControllers: Record<string, string>
+  nonControllers: IDeviceMeta[] = []
+  savedControllers: Record<string, any>
+  savedController: Record<string, any>
 
   debug = {
     state: 'initializing',
@@ -34,6 +39,8 @@ export class AppComponent {
   }
 
   constructor() {
+    console.log('initializing')
+
     this.debug.state = 'constructing'
     window.onerror = function (msg, url, line) {
       this.debug.windowError = {msg, url, line}
@@ -79,6 +86,7 @@ export class AppComponent {
       case 'devices':
         this.devices = data.devices
         this.controllers = this.devices.filter(device => isDeviceController(device))
+        this.nonControllers = this.devices.filter(device => !isDeviceController(device))
         console.log('devices', data.devices.length, this.devices.length)
         break;
 
@@ -103,6 +111,11 @@ export class AppComponent {
 
         if (matchedListener) {
           matchedListener.lastEvent = data.event
+
+          if (this.savedController && devicesMatch(matchedListener, this.savedController.deviceMeta)) {
+            matchedListener.pressed = decodeDeviceMetaState(matchedListener)
+            matchedListener.map = this.savedController.map
+          }
         }
 
         break
@@ -148,8 +161,14 @@ export class AppComponent {
       delete deviceMatch.subscribed
     }
 
-    this.debug.lastPayload = payload
+    const savedControllers =  Object.values(this.savedControllers).reduce((all, current) => [...all,...Object.values(current)], [])
+    const savedController = savedControllers.find(xSaved=>devicesMatch(device, xSaved.deviceMeta))
 
+    if (savedController) {
+      this.savedController = savedController
+    }
+
+    this.debug.lastPayload = payload
     this.connection.send(JSON.stringify(payload))
   }
 }
