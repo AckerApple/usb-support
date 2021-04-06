@@ -13,6 +13,9 @@
       <div *ngFor="let value of item.lastEvent?.data" style="border:1px solid black;border-radius: 5px;margin:1em;padding:.5em;">
         {{value}}
       </div>
+      <div *ngFor="let value of item.pressed" style="border:1px solid black;border-radius: 5px;margin:1em;padding:.5em;">
+        {{value}}
+      </div>
     </div>
   </div>
 
@@ -24,7 +27,12 @@
   </div>
 </div>
 
-<h3>Controllers</h3>
+<div style="display: flex;flex-wrap: wrap;">
+  <h3>Controllers</h3>
+  <p>
+    <button type="button" (click)="addTestController()">add test controller</button>
+  </p>
+</div>
 <div style="display:flex;flex-wrap: wrap;">
   <div *ngFor="let item of controllers">
     <button
@@ -33,7 +41,7 @@
       [style.background-color] = "item.subscribed && 'blue'"
       [style.color] = "item.subscribed && 'white'"
     >
-      {{ item.product || item.productId + ':' + item.vendorId }}
+      listen to {{ item.product || item.productId + ':' + item.vendorId }}
     </button>
   </div>
 </div>
