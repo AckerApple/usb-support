@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --watch --open --port 4200 --host 0.0.0.0 --disable-host-check",
+    "start:ssl": "npm run start -- --ssl",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",

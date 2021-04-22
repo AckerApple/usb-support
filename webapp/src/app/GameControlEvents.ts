@@ -1,13 +1,6 @@
-import { IDeviceMeta } from '../../../shared/typings';
+import { IButtonState, IDeviceMeta } from '../../../shared/typings';
 // import { EventEmitter } from 'events';
 import { Subject } from 'rxjs';
-
-interface IButtonState {
-  pos: number;
-  value: number;
-  idle: number;
-  updatedAt: number;
-}
 
 export class GameControlEvents {
   lastData: number[] = []

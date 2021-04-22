@@ -10,7 +10,13 @@ import { ack } from 'ack-x/js/ack'
 export interface IDeviceMetaState extends IDeviceMeta {
   subscribed: boolean
   lastEvent: any
-  map?: any // populated if matched to savedController
+  map?: {
+    [buttonName: string]: {
+      pressed: boolean
+      idle?: number
+      pos: number
+    }
+  } // populated if matched to savedController
   pressed?: string[] // populated if matched to savedController
 }
 @Component({
@@ -30,15 +36,15 @@ export class AppComponent {
   savedControllers: Record<string, any> = {}
   savedController: Record<string, any>
 
-  debug = {
+  debug: DebugData = {
     state: 'initializing',
     messages: 0,
     url: this.wsUrl,
     socket: {},
     lastSubscription: {},
     lastPayload: {},
-    lastlLogs: {
-      info:{}, error: {}
+    lastLogs: {
+      info:{}
     }
   }
 
@@ -113,7 +119,7 @@ export class AppComponent {
 
       case 'listeners':
         this.log({
-          message: `new listeners received ${this.listeners.length}`
+          message: `listeners update received ${data.devices.length}`
         })
         this.listeners = data.devices
         this.listeners.forEach(lDevice => {
@@ -136,11 +142,20 @@ export class AppComponent {
           matchedListener.lastEvent = data.event
 
           if (this.savedController && devicesMatch(matchedListener, this.savedController.deviceMeta)) {
-            matchedListener.pressed = decodeDeviceMetaState(matchedListener)
+            const pressedKeyNames = decodeDeviceMetaState(matchedListener)
+            matchedListener.pressed = pressedKeyNames
             matchedListener.map = this.savedController.map
+
+            Object.entries(matchedListener.map).forEach(current => {
+              const key = current[0]
+              current[1].pressed = pressedKeyNames.includes(key)
+            })
           }
         }
+        break
 
+      case 'error':
+        this.error(data.data)
         break
 
       default:
@@ -217,7 +232,15 @@ export class AppComponent {
 
     if (device === testController) {
       this.handleMessage({
-        type: 'listeners',
+        type: SocketMessageType.LISTENERS,
+        data: {
+          devices: this.devices,
+          controllers: this.controllers,
+          event: {message:'test-event'},
+          device
+        },
+
+        // deprecate this
         devices: this.devices,
         controllers: this.controllers,
         event: {message:'test-event'},
@@ -231,17 +254,23 @@ export class AppComponent {
       error = new Error(error)
     }
     const readable = ack.error(error).toObject()
-    this.debug.lastlLogs.error = {...readable, ...error, ...extra.reduce((all, one) => ({...all, ...one}), {})}
+    this.debug.lastLogs.error = {...readable, ...error, ...extra.reduce((all, one) => ({...all, ...one}), {})}
+    console.log('lastLogs.error updated')
     console.error(error, extra)
   }
 
   warn(...data: any) {
-    this.debug.lastlLogs.info = data
+    this.debug.lastLogs.info = data
     console.warn(data)
   }
 
   log(...data: any) {
-    this.debug.lastlLogs.info = data
+    this.debug.lastLogs.info = data
+
+    if (data[0].message) {
+      return console.log(data[0].message, data)
+    }
+
     console.log(data)
   }
 }
@@ -258,10 +287,34 @@ const testController: IDeviceMeta = {
 
 }
 
+export enum SocketMessageType {
+  DEVICEEVENT_CHANGE = 'deviceEvent.change',
+  LISTENERS = 'listeners',
+  SAVEDCONTROLLERS = 'savedControllers',
+  DEVICES = 'devices',
+  ERROR = 'error',
+}
+
 interface SocketMessage {
-  type: 'deviceEvent.change' | 'listeners' | 'savedControllers' | 'devices'
+  type: SocketMessageType
+  data: any
+
+  // deprecated
   devices: IDeviceMetaState[]
   controllers: IDeviceMeta[]
   event?: any // Event
   device?: IDeviceMeta
+}
+
+interface DebugData {
+  state: 'initializing' | 'constructing' | 'constructed' | 'message-received' | 'socket opened'
+  messages: number
+  url: string
+  socket: Record<string, any>,
+  lastSubscription: Record<string, any>,
+  lastPayload: Record<string, any>,
+  lastLogs: {
+    info: Record<string, any>
+    error?: Record<string, any>
+  }
 }

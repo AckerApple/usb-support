@@ -1,25 +1,111 @@
 <style>
   textarea.code {
-    height:500px;width:100%;max-width: 500px;
+    height:500px;width:100%;/*max-width: 500px;*/
+    min-width:300px;
   }
 </style>
-<div style="display:flex;flex-wrap:wrap">
-  <div style="flex-grow:1">
+<div style="display:flex;flex-wrap:wrap" class="child-pad-xs child-margin-xs">
+  <div class="flex2 border border-radius-10">
     <h3>listeners: {{listeners.length}}</h3>
     <textarea class="code" wrap="off">
       {{listeners | json}}
     </textarea>
-    <div *ngFor="let item of listeners" style="display:flex;flex-wrap:wrap">
+    <div *ngFor="let item of listeners" style="display:flex;flex-wrap:wrap;">
       <div *ngFor="let value of item.lastEvent?.data" style="border:1px solid black;border-radius: 5px;margin:1em;padding:.5em;">
         {{value}}
       </div>
-      <div *ngFor="let value of item.pressed" style="border:1px solid black;border-radius: 5px;margin:1em;padding:.5em;">
-        {{value}}
+      <!--
+        <div *ngFor="let value of item.pressed" style="border:1px solid black;border-radius: 5px;margin:1em;padding:.5em;">
+          {{value}}
+        </div>
+      -->
+      <div style="display:flex;flex-wrap:wrap">
+        <div>
+          <ng-container *ngFor="let button of item.map | keyvalue">
+            <button type="button" [disabled]="button.value.pressed">{{button.key}}</button>
+          </ng-container>
+        </div>
       </div>
     </div>
   </div>
 
-  <div style="flex-grow:1">
+  <div class="flex-1 flex-wrap border border-radius-10">
+    <h3>Controllers</h3>
+    <p>
+      <button type="button" (click)="addTestController()">add test controller</button>
+    </p>
+    <div>
+      <div style="display:flex;flex-wrap: wrap;">
+        <div *ngFor="let item of controllers">
+          <button
+            type="button" style="margin:.5em;font-size:1.1em;padding:.4em;"
+            (click)="listenToDevice(item)"
+            [style.background-color] = "item.subscribed && 'blue'"
+            [style.color] = "item.subscribed && 'white'"
+          >
+            listen to {{ item.product || item.productId + ':' + item.vendorId }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex2 border border-radius-10">
+    <h4>Other Devices</h4>
+    <div class="flex-wrap">
+      <div *ngFor="let item of nonControllers">
+        <button
+          type="button" style="margin:.5em;" (click)="listenToDevice(item)"
+          [style.background-color] = "item.subscribed && 'blue'"
+          [style.color] = "item.subscribed && 'white'"
+        >
+          {{ item.product || item.productId + ':' + item.vendorId }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex1 border border-radius-10">
+    <h4>Saved Controllers</h4>
+    <div style="display:flex;flex-wrap: wrap;">
+      <ng-container *ngFor="let vendor of savedControllers | keyvalue">
+        <div *ngFor="let item of vendor.value | keyvalue">
+          <button
+            type="button" style="margin:.5em;"
+            (click)="savedController = item.value"
+            [style.background-color] = "savedController === item.value && 'blue' || null"
+            [style.color] = "savedController === item.value && 'white' || null"
+          >
+            {{ item.value.deviceMeta.product || item.value.deviceMeta.productId + ':' + item.value.deviceMeta.vendorId }}
+          </button>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="flex1 border border-radius-10" *ngIf="savedController">
+      <h3>Saved Controller: {{ savedController.deviceMeta.product || savedController.deviceMeta.productId + ':' + item.value.deviceMeta.vendorId }}</h3>
+      <p>Details of past connected and saved controllers</p>
+      <textarea class="code" wrap="off">{{savedController | json}}</textarea>
+    </div>
+  </div>
+
+  <div class="flex1 flex-wrap border border-radius-10">
+    <h3>Devices: {{devices.length}}</h3>
+    <textarea class="code" wrap="off">{{devices | json}}</textarea>
+  </div>
+
+  <div class="flex1 flex-wrap border border-radius-10">
+    <h3>Controllers: {{controllers.length}}</h3>
+    <textarea class="code" wrap="off">{{controllers | json}}</textarea>
+  </div>
+
+  <div *ngIf="debug.lastLogs.error" class="flex2 border border-radius-10 bg-warning">
+    <h3>Recent error occurred</h3>
+    <p *ngIf="debug.lastLogs.error.message">{{debug.lastLogs.error.message}}</p>
+    <textarea class="code">{{debug.lastLogs.error | json}}</textarea>
+  </div>
+
+  <div class="flex2 border border-radius-10">
     <h3>debug</h3>
     <textarea class="code" wrap="off">
       {{debug | json}}
@@ -27,70 +113,8 @@
   </div>
 </div>
 
-<div style="display: flex;flex-wrap: wrap;">
-  <h3>Controllers</h3>
-  <p>
-    <button type="button" (click)="addTestController()">add test controller</button>
-  </p>
-</div>
-<div style="display:flex;flex-wrap: wrap;">
-  <div *ngFor="let item of controllers">
-    <button
-      type="button" style="margin:.5em;font-size:1.1em;padding:.4em;"
-      (click)="listenToDevice(item)"
-      [style.background-color] = "item.subscribed && 'blue'"
-      [style.color] = "item.subscribed && 'white'"
-    >
-      listen to {{ item.product || item.productId + ':' + item.vendorId }}
-    </button>
-  </div>
-</div>
-
-<h4>Other Devices</h4>
-<div style="display:flex;flex-wrap: wrap;">
-  <div *ngFor="let item of nonControllers">
-    <button
-      type="button" style="margin:.5em;" (click)="listenToDevice(item)"
-      [style.background-color] = "item.subscribed && 'blue'"
-      [style.color] = "item.subscribed && 'white'"
-    >
-      {{ item.product || item.productId + ':' + item.vendorId }}
-    </button>
-  </div>
-</div>
-
-<h4>Saved Controllers</h4>
-<div style="display:flex;flex-wrap: wrap;">
-  <ng-container *ngFor="let vendor of savedControllers | keyvalue">
-    <div *ngFor="let item of vendor.value | keyvalue">
-      <button
-        type="button" style="margin:.5em;"
-        (click)="savedController = item.value"
-        [style.background-color] = "savedController === item.value && 'blue' || null"
-        [style.color] = "savedController === item.value && 'white' || null"
-      >
-        {{ item.value.deviceMeta.product || item.value.deviceMeta.productId + ':' + item.value.deviceMeta.vendorId }}
-      </button>
-    </div>
-  </ng-container>
-</div>
-
-<div style="flex-grow:1" *ngIf="savedController">
-  <h3>Saved Controller: {{ savedController.deviceMeta.product || savedController.deviceMeta.productId + ':' + item.value.deviceMeta.vendorId }}</h3>
-  <textarea class="code" wrap="off">{{savedController | json}}</textarea>
-</div>
 
 
-<div style="display:flex;flex-wrap:wrap">
-  <div style="flex-grow:1">
-    <h3>Devices: {{devices.length}}</h3>
-    <textarea class="code" wrap="off">{{devices | json}}</textarea>
-  </div>
-
-  <div style="flex-grow:1">
-    <h3>Controllers: {{controllers.length}}</h3>
-    <textarea class="code" wrap="off">{{controllers | json}}</textarea>
-  </div>
 
 
 <router-outlet></router-outlet>
