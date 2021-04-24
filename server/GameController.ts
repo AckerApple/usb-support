@@ -123,7 +123,7 @@ export class GameController extends GameControlEvents {
     try {
       return new HID.HID(this.deviceMeta.path);
     } catch (err) {
-      console.warn("Could not connect by path", err);
+      console.warn("Could not connect by path", err.message);
       return this.tryVendorProductConnection()
     }
   }
@@ -134,7 +134,8 @@ export class GameController extends GameControlEvents {
     } catch (err) {
       err.message = err.message + `(vId:${this.deviceMeta.vendorId} pId:${this.deviceMeta.productId} ${this.deviceMeta.product})`
       err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
-      // console.error(err)
+      console.error("Could not connect to device", err);
+      console.warn(err.tip);
       throw err;
     }
   }

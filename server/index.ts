@@ -1,13 +1,10 @@
-import * as fs from 'fs'
 import { DeviceProductLayout, WssMessage } from '../shared/typings'
 import { socketPort } from '../shared/config.json'
 import * as controllers from '../controllers.json'
 import { HandlerClass } from './WssHandler.class'
 import { GameController } from './GameController'
-import { ack } from 'ack-x/js/ack'
 import * as WebSocket from 'ws'
 import * as nconf from "nconf"
-import * as path from 'path'
 import { SocketMessageType } from '../shared/enums'
 
 export const controlConfigs: {
@@ -69,7 +66,6 @@ wss.on('connection', ws => {
   })
 })
 
-
 console.log('websocket listening on port ' + socketPort)
 
 function messageHandler(ws) {
@@ -77,47 +73,10 @@ function messageHandler(ws) {
   return function messageHandler(message) {
     try {
       const request: WssMessage = JSON.parse(message)
-
-      switch (request.type) {
-        case SocketMessageType.SAVEDCONTROLLERS:
-          handlerClass.saveController(request.data);
-          break
-
-        case SocketMessageType.GETSAVEDCONTROLLERS:
-          handlerClass.emitSavedControllers();
-          break
-
-        case SocketMessageType.REFRESH:
-          handlerClass.refresh()
-          break
-
-        case SocketMessageType.LISTENTODEVICE:
-          handlerClass.listenToDevice(request.data).catch(sendError)
-          break
-
-        case SocketMessageType.UNSUBSCRIBEDEVICE:
-          handlerClass.unsubscribeDevice(request.data)
-          break
-
-        default:
-          console.error('Unknown message type ' + request.type)
-      }
+      handlerClass.handleMessage(request)
     } catch (err) {
       console.error('Invalid message', {message, err})
     }
-  }
-
-  function sendError(err) {
-    const errObject = ack.error(err).toObject()
-    sender(SocketMessageType.ERROR, errObject)
-  }
-
-  function sender(
-    type: SocketMessageType, data: any
-  ) {
-    ws.send(JSON.stringify({
-      type, data
-    }))
   }
 }
 

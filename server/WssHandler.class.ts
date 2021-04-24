@@ -1,13 +1,14 @@
-import { DeviceProductLayout, IDeviceMeta } from '../shared/typings'
+import { DeviceProductLayout, IDeviceMeta, WssMessage } from '../shared/typings'
 import { listenToDeviceByMeta, listDevices } from './index.utils'
+import { SocketMessageType } from '../shared/enums'
+import { GameController } from './GameController'
 import { scope, controlConfigs } from './index'
 import { devicesMatch } from '../index.shared'
 import { Subscription } from 'rxjs'
+import { ack } from 'ack-x/js/ack'
 import * as WebSocket from 'ws'
 import * as path from 'path'
 import * as fs from 'fs'
-import { GameController } from './GameController'
-import { SocketMessageType } from '../shared/enums'
 
 export class HandlerClass {
   subs = new Subscription()
@@ -122,5 +123,37 @@ export class HandlerClass {
     fs.writeFileSync(filePath, JSON.stringify(controlConfigs, null, 2))
     // controlConfigs
     // controllers.json
+  }
+
+  handleMessage(request: WssMessage) {
+    switch (request.type) {
+      case SocketMessageType.SAVEDCONTROLLERS:
+        this.saveController(request.data);
+        break
+
+      case SocketMessageType.GETSAVEDCONTROLLERS:
+        this.emitSavedControllers();
+        break
+
+      case SocketMessageType.REFRESH:
+        this.refresh()
+        break
+
+      case SocketMessageType.LISTENTODEVICE:
+        this.listenToDevice(request.data).catch(err => this.sendError(err))
+        break
+
+      case SocketMessageType.UNSUBSCRIBEDEVICE:
+        this.unsubscribeDevice(request.data)
+        break
+
+      default:
+        console.error('Unknown message type ' + request.type)
+    }
+  }
+
+  sendError(err) {
+    const errObject = ack.error(err).toObject()
+    this.send(SocketMessageType.ERROR, errObject)
   }
 }
