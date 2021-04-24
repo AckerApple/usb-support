@@ -1,5 +1,6 @@
 import { Component } from '@angular/core'
-import { IDeviceMeta } from '../../../shared/typings'
+import { WssMessage, IDeviceMeta } from '../../../shared/typings'
+import { SocketMessageType } from '../../../shared/enums'
 import GameControlEvents from './GameControlEvents'
 import mapController from './mapController.function'
 import { socketHost, socketPort } from '../../../shared/config.json'
@@ -41,7 +42,7 @@ export class AppComponent {
     messages: 0,
     url: this.wsUrl,
     socket: {},
-    lastSubscription: {},
+    lastWssData: {},
     lastPayload: {},
     lastLogs: {
       info:{}
@@ -70,7 +71,6 @@ export class AppComponent {
   connect() {
     this.connection = new WebSocket(this.wsUrl)
     this.connection.onopen = () => {
-      // connection.send('Message From Client')
       this.log('web socket handshake successful')
       this.fetchUsbDevices()
       this.fetchSavedControllers()
@@ -87,12 +87,13 @@ export class AppComponent {
     this.connection.onmessage = (e) => {
       this.debug.state = 'message-received'
       ++this.debug.messages
-      this.debug.lastSubscription = e
 
       try {
-        const data = JSON.parse(e.data)
+        const data: WssMessage = JSON.parse(e.data)
+        this.debug.lastWssData = data
         this.handleMessage(data)
       } catch (err) {
+        console.log('e.data', e)
         this.error(err, 'client message failed');
         (this.debug.socket as any).error = err
       }
@@ -103,25 +104,30 @@ export class AppComponent {
     mapController(controller)
   }
 
-  handleMessage(data: SocketMessage) {
+  handleMessage(data: WssMessage) {
     switch (data.type) {
-      case 'devices':
-        this.devices = data.devices
+      case SocketMessageType.DEVICES:
+        console.log('data.data', data)
+        this.devices = data.data
         this.controllers = this.devices.filter(device => isDeviceController(device))
         this.nonControllers = this.devices.filter(device => !isDeviceController(device))
-        this.log('devices', data.devices.length, this.devices.length)
+        this.log('controllers', this.controllers)
+        this.log('other devices', this.nonControllers)
         break;
 
-      case 'savedControllers':
-        this.savedControllers = data.controllers
-        this.log('savedControllers', data.controllers)
+      case SocketMessageType.SAVEDCONTROLLERS:
+        if (data.data) {
+          this.savedControllers = data.data
+          this.log('savedControllers', data.data)
+        }
         break;
 
-      case 'listeners':
+      case SocketMessageType.LISTENERS:
+        const devices = data.data
         this.log({
-          message: `listeners update received ${data.devices.length}`
+          message: `listeners update received ${devices.length}`
         })
-        this.listeners = data.devices
+        this.listeners = devices
         this.listeners.forEach(lDevice => {
           this.devices.forEach(device => {
             if (devicesMatch(device, lDevice)) {
@@ -131,15 +137,17 @@ export class AppComponent {
         })
         break
 
-      case 'deviceEvent.change':
-        this.log({
-          message: `device change event`
-        })
+      case SocketMessageType.DEVICEEVENT_CHANGE:
+        const event = data.data.event
+        const eventDevice = data.data.device
 
-        const matchedListener = this.listeners.find(device => devicesMatch(device, data.device))
+        // this.log({message: `device change event`, data})
+        const matchedListener = this.listeners.find(
+          device => devicesMatch(device, eventDevice)
+        )
 
         if (matchedListener) {
-          matchedListener.lastEvent = data.event
+          matchedListener.lastEvent = event
 
           if (this.savedController && devicesMatch(matchedListener, this.savedController.deviceMeta)) {
             const pressedKeyNames = decodeDeviceMetaState(matchedListener)
@@ -154,7 +162,7 @@ export class AppComponent {
         }
         break
 
-      case 'error':
+      case SocketMessageType.ERROR:
         this.error(data.data)
         break
 
@@ -173,43 +181,40 @@ export class AppComponent {
   }
 
   fetchSavedControllers() {
-    const payload = {
-      type: 'getSavedControllers'
-    }
+    this.wssSend(SocketMessageType.GETSAVEDCONTROLLERS)
+  }
 
+  wssSend(type: SocketMessageType, data?: any) {
+    const payload = {type, data}
+    this.debug.lastPayload = payload
     this.connection.send(JSON.stringify(payload))
+    return this
   }
 
   fetchUsbDevices() {
-    const payload = {
-      type: 'refresh'
-    }
-
-    this.connection.send(JSON.stringify(payload))
+    this.wssSend(SocketMessageType.REFRESH)
   }
 
   getSavedControllers() {
-    const payload = {
-      type: 'getSavedControllers'
-    }
-
-    this.connection.send(JSON.stringify(payload))
+    this.wssSend(SocketMessageType.GETSAVEDCONTROLLERS)
   }
 
   listenToDevice(device: IDeviceMetaState) {
-    const stringRef = `${device.product} by ${device.manufacturer}`
+    let stringRef = device.product?.trim() || ''
+
+    if (device.manufacturer) {
+      stringRef += ' by '+ device.manufacturer
+    }
 
     this.log({
-      message: `attempting to listen to ${stringRef}`
+      message: `attempting to listen to ${stringRef}`, device
     })
 
-    const payload = {
-      type: 'listenToDevice', device
-    }
+    let type: SocketMessageType = SocketMessageType.LISTENTODEVICE
 
     const deviceMatch = this.listeners.find(xDevice=>devicesMatch(device, xDevice))
     if(deviceMatch){
-      payload.type = 'unsubscribeToDevice'
+      type = SocketMessageType.UNSUBSCRIBEDEVICE
       delete device.subscribed
       delete deviceMatch.subscribed
       this.log({
@@ -217,6 +222,7 @@ export class AppComponent {
       })
     }
 
+    console.log('current', this.savedControllers)
     const savedControllers =  Object.values(this.savedControllers).reduce((all, current) => [...all,...Object.values(current)], [])
     const savedController = savedControllers.find(xSaved=>devicesMatch(device, xSaved.deviceMeta))
 
@@ -224,11 +230,11 @@ export class AppComponent {
       this.savedController = savedController
     }
 
-    this.debug.lastPayload = payload
     this.log({
       message: `requesting web socket to listen to ${stringRef}`
     })
-    this.connection.send(JSON.stringify(payload))
+
+    this.wssSend(type, device)
 
     if (device === testController) {
       this.handleMessage({
@@ -238,13 +244,7 @@ export class AppComponent {
           controllers: this.controllers,
           event: {message:'test-event'},
           device
-        },
-
-        // deprecate this
-        devices: this.devices,
-        controllers: this.controllers,
-        event: {message:'test-event'},
-        device
+        }
       })
     }
   }
@@ -256,7 +256,7 @@ export class AppComponent {
     const readable = ack.error(error).toObject()
     this.debug.lastLogs.error = {...readable, ...error, ...extra.reduce((all, one) => ({...all, ...one}), {})}
     console.log('lastLogs.error updated')
-    console.error(error, extra)
+    console.error({error, ...extra})
   }
 
   warn(...data: any) {
@@ -287,31 +287,12 @@ const testController: IDeviceMeta = {
 
 }
 
-export enum SocketMessageType {
-  DEVICEEVENT_CHANGE = 'deviceEvent.change',
-  LISTENERS = 'listeners',
-  SAVEDCONTROLLERS = 'savedControllers',
-  DEVICES = 'devices',
-  ERROR = 'error',
-}
-
-interface SocketMessage {
-  type: SocketMessageType
-  data: any
-
-  // deprecated
-  devices: IDeviceMetaState[]
-  controllers: IDeviceMeta[]
-  event?: any // Event
-  device?: IDeviceMeta
-}
-
 interface DebugData {
   state: 'initializing' | 'constructing' | 'constructed' | 'message-received' | 'socket opened'
   messages: number
   url: string
   socket: Record<string, any>,
-  lastSubscription: Record<string, any>,
+  lastWssData: Record<string, any>,
   lastPayload: Record<string, any>,
   lastLogs: {
     info: Record<string, any>

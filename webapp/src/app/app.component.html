@@ -7,7 +7,7 @@
 <div style="display:flex;flex-wrap:wrap" class="child-pad-xs child-margin-xs">
   <div class="flex2 border border-radius-10">
     <h3>listeners: {{listeners.length}}</h3>
-    <textarea class="code" wrap="off">
+    <textarea class="code" wrap="off" [style.height.em]="25 * listeners.length">
       {{listeners | json}}
     </textarea>
     <div *ngFor="let item of listeners" style="display:flex;flex-wrap:wrap;">
@@ -29,12 +29,12 @@
     </div>
   </div>
 
-  <div class="flex-1 flex-wrap border border-radius-10">
+  <div class="flex-1 border border-radius-10">
     <h3>Controllers</h3>
     <p>
       <button type="button" (click)="addTestController()">add test controller</button>
     </p>
-    <div>
+    <div class="flex-wrap">
       <div style="display:flex;flex-wrap: wrap;">
         <div *ngFor="let item of controllers">
           <button
@@ -70,8 +70,7 @@
     <div style="display:flex;flex-wrap: wrap;">
       <ng-container *ngFor="let vendor of savedControllers | keyvalue">
         <div *ngFor="let item of vendor.value | keyvalue">
-          <button
-            type="button" style="margin:.5em;"
+          <button type="button" style="margin:.5em;"
             (click)="savedController = item.value"
             [style.background-color] = "savedController === item.value && 'blue' || null"
             [style.color] = "savedController === item.value && 'white' || null"
@@ -105,6 +104,7 @@
     <textarea class="code">{{debug.lastLogs.error | json}}</textarea>
   </div>
 
+  <!--  DEBUG PANEL -->
   <div class="flex2 border border-radius-10">
     <h3>debug</h3>
     <textarea class="code" wrap="off">

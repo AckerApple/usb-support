@@ -24,7 +24,7 @@ export class GameController extends GameControlEvents {
   device: IDevice;
   $data: Subject<number[]> = new Subject()
   listener: (data: number[]) => any
-  subs = new Subscription()
+  private subs = new Subscription()
 
   // device can be asked for state versus always reporting its state
   allowsInterfacing() {
@@ -97,19 +97,7 @@ export class GameController extends GameControlEvents {
 
     if (!this.device) {
       if (this.deviceMeta) {
-          try {
-            this.device = new HID.HID(this.deviceMeta.path);
-          } catch (err) {
-            console.warn("Could not connect by path", err);
-            try {
-              this.device = new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
-            } catch (err) {
-              err.message = err.message + `(vId:${this.deviceMeta.vendorId} pId:${this.deviceMeta.productId} ${this.deviceMeta.product})`
-              err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
-              // console.error(err)
-              throw err;
-            }
-          }
+        this.device = this.tryConnection()
       } else {
         throw new Error("GameController.deviceMeta has not been set. Need vendorId and productId");
       }
@@ -129,6 +117,26 @@ export class GameController extends GameControlEvents {
     this.device.addListener("data", this.listener);
 
     return this;
+  }
+
+  tryConnection() {
+    try {
+      return new HID.HID(this.deviceMeta.path);
+    } catch (err) {
+      console.warn("Could not connect by path", err);
+      return this.tryVendorProductConnection()
+    }
+  }
+
+  tryVendorProductConnection() {
+    try {
+      return new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
+    } catch (err) {
+      err.message = err.message + `(vId:${this.deviceMeta.vendorId} pId:${this.deviceMeta.productId} ${this.deviceMeta.product})`
+      err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
+      // console.error(err)
+      throw err;
+    }
   }
 
   close() {

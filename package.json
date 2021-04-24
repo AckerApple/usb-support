@@ -20,18 +20,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^14.14.17",
-    "ack-css-boot": "^1.2.66",
+    "@types/node": "^14.14.41",
+    "ack-css-boot": "^1.2.67",
     "ack-reload": "^3.0.3",
-    "ack-x": "^1.7.0",
+    "ack-x": "^1.7.1",
     "nconf": "^0.11.2",
     "node-hid": "^2.1.1",
-    "nodemon": "^2.0.6",
+    "nodemon": "^2.0.7",
     "npm-run-all": "^4.1.5",
-    "rxjs": "^6.6.3",
+    "rxjs": "^6.6.7",
     "ts-node": "^9.1.1",
     "usb-detection": "^4.10.0",
-    "ws": "^7.4.2"
+    "ws": "^7.4.5"
   },
   "devDependencies": {
     "typescript": "^4.1.3"

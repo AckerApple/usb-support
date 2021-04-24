@@ -1,3 +1,10 @@
+import { SocketMessageType } from "./enums";
+
+export interface WssMessage {
+  type: SocketMessageType
+  data: any
+}
+
 export interface DeviceProductLayout {
   deviceMeta: IDeviceMeta
   map: {
