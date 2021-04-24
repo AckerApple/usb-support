@@ -33,18 +33,15 @@ export const scope: {
   usbListeners: []
 }
 
-const serverConfig = {
-  port: socketPort,
-  host: 'ackers-mac-mini.local'
-}
-const certPathRoot = path.join(__dirname,'../assets/')
-const certPath = path.join(certPathRoot + 'ackers-mac-mini.server.cert')
-const keyPath = path.join(certPathRoot + 'ackers-mac-mini.server.key')
+// const serverConfig = { port: socketPort, host: '0.0.0.0' }
+// const certPathRoot = path.join(__dirname,'../assets/')
+// const certPath = path.join(certPathRoot + 'ackers-mac-mini.server.cert')
+// const keyPath = path.join(certPathRoot + 'ackers-mac-mini.server.key')
 const wss = new WebSocket.Server({
   noServer: true,
-  cert: fs.readFileSync(certPath),
-  key: fs.readFileSync(keyPath),
-  ...serverConfig,
+  // cert: fs.readFileSync(certPath),
+  // key: fs.readFileSync(keyPath),
+  // ...serverConfig,
 })
 
 var usbDetect = require('usb-detection');

@@ -1,4 +1,4 @@
 {
   "socketPort": 8081,
-  "socketHost": "ackers-mac-mini.local"
+  "socketHost": "0.0.0.0"
 }
