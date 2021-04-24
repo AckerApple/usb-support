@@ -3,10 +3,14 @@ import { WssMessage, IDeviceMeta } from '../../../shared/typings'
 import { SocketMessageType } from '../../../shared/enums'
 import GameControlEvents from './GameControlEvents'
 import mapController from './mapController.function'
-import { socketHost, socketPort } from '../../../shared/config.json'
+import {
+  // socketHost,
+  socketPort } from '../../../shared/config.json'
 import { devicesMatch, isDeviceController } from '../../../index.shared'
 import decodeDeviceMetaState from './decodeControllerButtonStates.function'
 import { ack } from 'ack-x/js/ack'
+
+const socketHost = window.location.hostname
 
 export interface IDeviceMetaState extends IDeviceMeta {
   subscribed: boolean
@@ -50,13 +54,12 @@ export class AppComponent {
   }
 
   constructor() {
-    this.log('initializing')
-
     this.debug.state = 'constructing'
     window.onerror = err => this.error(typeof(err) === 'string' ? new Error(err) : err)
+  }
 
-    this.log('making socket connection handshake')
-
+  ngOnInit(){
+    this.log('connecting to websocket', this.wsUrl)
     try {
       this.connect()
       this.debug.state = 'constructed'
