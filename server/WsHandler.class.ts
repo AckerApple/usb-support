@@ -7,7 +7,7 @@ import * as WebSocket from 'ws'
 import { scope } from './server.start'
 import * as path from 'path'
 import * as fs from 'fs'
-import { saveControllerToConfigs } from '../index.shared'
+import { savedControllerToConfigs } from '../index.shared'
 import { GameController } from './GameController'
 
 export const controlConfigs: ControllerConfigs = controllers
@@ -69,7 +69,7 @@ export default class WsHandler extends HandlerClass {
   }
 
   saveController(controller: DeviceProductLayout) {
-    saveControllerToConfigs(controller, controlConfigs)
+    savedControllerToConfigs(controller, controlConfigs)
     this.saveControllers(controlConfigs)
   }
 
