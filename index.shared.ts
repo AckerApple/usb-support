@@ -52,7 +52,7 @@ export function getControlConfigByDevice(configs: ControllerConfigs, device: IDe
 
 }
 
-export function saveControllerToConfigs(
+export function savedControllerToConfigs(
   controller: DeviceProductLayout,
   controlConfigs: ControllerConfigs = {}
 ) {
@@ -60,4 +60,6 @@ export function saveControllerToConfigs(
   const vendorOb = controlConfigs[vendorId] = controlConfigs[vendorId] || {}
 
   vendorOb[productId] = controller
+
+  return controlConfigs
 }

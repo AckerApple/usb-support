@@ -4,7 +4,6 @@ import { SocketMessageType } from '../shared/enums'
 import { GameController } from './GameController'
 import { cleanseDeviceEvent, devicesMatch, eventsMatch, getControlConfigByDevice, isDeviceEventsSame } from '../index.shared'
 import { Subject, Subscription } from 'rxjs'
-import { scope } from './server.start' // TODO: decouple this
 
 export class HandlerClass {
   lastEvent: number[]
@@ -39,9 +38,9 @@ export class HandlerClass {
   }
 
   unsubscribeDevice(device: IDeviceMeta) {
-    const gameController = scope.usbListeners.find(gc => devicesMatch(gc.meta, device))
+    const gameController = this.listeners.find(gc => devicesMatch(gc.meta, device))
     if (gameController) {
-      scope.usbListeners = scope.usbListeners.filter(
+      this.listeners = this.listeners.filter(
         gc => !devicesMatch(gc.meta, device)
       )
       gameController.close()
@@ -59,19 +58,23 @@ export class HandlerClass {
 
   async listenToDevice(device: IDeviceMeta): Promise<void> {
     // are we already listening?
-    let gameController = scope.usbListeners.find(gc => devicesMatch(gc.meta, device))
+    let gameController = this.listeners.find(gc => devicesMatch(gc.meta, device))
     if (!gameController) {
       gameController = await listenToDeviceByMeta(device)
-      scope.usbListeners.push( gameController )
+      this.listeners.push( gameController )
     }
 
+    this.listenToController(gameController)
+  }
+
+  listenToController(gameController: GameController) {
     // are we already subscribed?
     if (this.isControlSubscribed(gameController)) {
       return
     }
 
     this.subscribeToController(gameController)
-    this.deviceListenActive.next(device)
+    this.deviceListenActive.next(gameController.meta)
   }
 
   isControlSubscribed(controller: GameController) {

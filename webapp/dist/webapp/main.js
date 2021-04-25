@@ -134,7 +134,7 @@ const environment = {
 /*!**************************!*\
   !*** ../index.shared.ts ***!
   \**************************/
-/*! exports provided: isDeviceController, devicesMatch, cleanseDeviceEvent, isDeviceEventsSame, eventsMatch, getControlConfigByDevice, saveControllerToConfigs */
+/*! exports provided: isDeviceController, devicesMatch, cleanseDeviceEvent, isDeviceEventsSame, eventsMatch, getControlConfigByDevice, savedControllerToConfigs */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -145,7 +145,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDeviceEventsSame", function() { return isDeviceEventsSame; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "eventsMatch", function() { return eventsMatch; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getControlConfigByDevice", function() { return getControlConfigByDevice; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "saveControllerToConfigs", function() { return saveControllerToConfigs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "savedControllerToConfigs", function() { return savedControllerToConfigs; });
 function isDeviceController(device) {
     return (device.usage === 5 && device.usagePage === 1)
         || (device.usage === 4 && device.usagePage === 1)
@@ -179,10 +179,11 @@ function getControlConfigByDevice(configs, device) {
     }
     return products[productId];
 }
-function saveControllerToConfigs(controller, controlConfigs = {}) {
+function savedControllerToConfigs(controller, controlConfigs = {}) {
     const { vendorId, productId } = controller.meta;
     const vendorOb = controlConfigs[vendorId] = controlConfigs[vendorId] || {};
     vendorOb[productId] = controller;
+    return controlConfigs;
 }
 
 

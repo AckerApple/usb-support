@@ -36,7 +36,7 @@ export function startSocketServer() {
     console.log('------ connection opened', {connections: scope.connections.length})
 
     // give latest on who we listening to already
-    const handlerClass = new WsHandler(ws, controlConfigs).reestablish()
+    const handlerClass = new WsHandler(ws, controlConfigs, scope.usbListeners).reestablish()
 
     ws.on('message', messageHandler(ws, handlerClass))
     ws.on('close', () => {
@@ -52,7 +52,7 @@ export function startSocketServer() {
   function messageHandler(
     ws: typeof WebSocket.Server, handlerClass: WsHandler
   ): (message: any) => void {
-    // const handlerClass = new WsHandler(ws, handlerClass)
+    // const handlerClass = new WsHandler(ws, handlerClass, scope.usbListeners)
 
     return function messageHandler(message) {
       try {
@@ -76,7 +76,9 @@ function monitorUsbDeviceList() {
   usbDetect.on('change', device => {
     console.log('usb change', {connections: scope.connections.length})
     setTimeout(() =>
-      scope.connections.forEach(ws => new WsHandler(ws).refresh())
+      scope.connections.forEach(ws =>
+        new WsHandler(ws, controlConfigs, scope.usbListeners).refresh()
+      )
     , 500) // delay broadcast list of device
   });
 }
