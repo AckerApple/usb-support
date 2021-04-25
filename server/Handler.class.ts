@@ -1,4 +1,4 @@
-import { ControllerConfigs, IDeviceMeta, WssMessage } from '../shared/typings'
+import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from '../shared/typings'
 import { listenToDeviceByMeta, listDevices } from './index.utils'
 import { SocketMessageType } from '../shared/enums'
 import { GameController } from './GameController'
@@ -6,7 +6,6 @@ import { cleanseDeviceEvent, devicesMatch, eventsMatch, getControlConfigByDevice
 import { Subject, Subscription } from 'rxjs'
 
 export class HandlerClass {
-  lastEvent: number[]
   deviceEvent: Subject<{device: IDeviceMeta, event: number[]}> = new Subject()
   error: Subject<Error> = new Subject()
   deviceUnsubscribed: Subject<IDeviceMeta> = new Subject()
@@ -22,6 +21,11 @@ export class HandlerClass {
     public listeners?: GameController[],
   ) {}
 
+  getDeviceHandler(device: IDeviceMeta) {
+    const config: DeviceProductLayout = getControlConfigByDevice(this.controllerConfigs, device)
+    return new DeviceHandler(config)
+  }
+
   destroy() {
     this.subs.unsubscribe()
   }
@@ -31,7 +35,14 @@ export class HandlerClass {
       return
     }
 
-    this.subscribeToController(control)
+    const deviceSub = this.getDeviceHandler(control.meta).subscribeToController(control)
+
+    this.controlSubs.push({
+      control, sub: deviceSub
+    })
+
+    this.subs.add(deviceSub)
+
     if (control.idle) {
       this.deviceEvent.next({device: control.meta, event: control.idle})
     }
@@ -82,29 +93,6 @@ export class HandlerClass {
     return this.controlSubs.find(item => devicesMatch(item.control.meta, controller.meta))
   }
 
-  subscribeToController(control: GameController) {
-    const deviceSub = control.change.subscribe(event => {
-      const config = getControlConfigByDevice(this.controllerConfigs, control.meta)
-
-      if (config) {
-        event = cleanseDeviceEvent(config, event)
-        if (this.lastEvent && eventsMatch(event, this.lastEvent)) {
-          return // no real change. Perhaps ignored pins
-        }
-        this.lastEvent = event
-      }
-
-      this.deviceEvent.next({device: control.meta, event})
-    })
-
-    this.controlSubs.push({
-      control, sub: deviceSub
-    })
-
-    this.subs.add(deviceSub)
-  }
-
-
   handleMessage(request: WssMessage) {
     switch (request.type) {
       case SocketMessageType.LISTENTODEVICE:
@@ -118,5 +106,31 @@ export class HandlerClass {
       default:
         console.error('Unknown message type ' + request.type)
     }
+  }
+}
+
+export class DeviceHandler {
+  lastEvent: number[]
+  deviceEvent: Subject<number[]> = new Subject()
+  subs: Subscription = new Subscription()
+
+  constructor(public config: DeviceProductLayout) {}
+
+  subscribeToController(control: GameController): Subscription {
+    const deviceSub = control.change.subscribe(event => {
+      if (this.config) {
+        event = cleanseDeviceEvent(this.config, event)
+        if (this.lastEvent && eventsMatch(event, this.lastEvent)) {
+          return // no real change. Perhaps ignored pins
+        }
+        this.lastEvent = event
+      }
+
+      this.deviceEvent.next(event)
+    })
+
+    this.subs.add(deviceSub)
+
+    return deviceSub
   }
 }
