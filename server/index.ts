@@ -1,17 +1,12 @@
-import { DeviceProductLayout, WssMessage } from '../shared/typings'
+import { ControllerConfigs, WssMessage } from '../shared/typings'
 import { socketPort } from '../shared/config.json'
 import * as controllers from '../controllers.json'
 import { HandlerClass } from './WssHandler.class'
 import { GameController } from './GameController'
 import * as WebSocket from 'ws'
 import * as nconf from "nconf"
-import { SocketMessageType } from '../shared/enums'
 
-export const controlConfigs: {
-  [vendorId: string]: {
-    [productId: string]: DeviceProductLayout
-  }
-} = controllers
+export const controlConfigs: ControllerConfigs = controllers
 nconf.argv().env() // read env params (setup config)
 
 const ssl = nconf.get('ssl')
@@ -31,13 +26,8 @@ export const scope: {
 }
 
 const serverConfig = { port: socketPort, host: '0.0.0.0' }
-// const certPathRoot = path.join(__dirname,'../assets/')
-// const certPath = path.join(certPathRoot + 'ackers-mac-mini.server.cert')
-// const keyPath = path.join(certPathRoot + 'ackers-mac-mini.server.key')
 const wss = new WebSocket.Server({
   noServer: true,
-  // cert: fs.readFileSync(certPath),
-  // key: fs.readFileSync(keyPath),
   ...serverConfig,
 })
 

@@ -1,7 +1,7 @@
 {
   "273": {
     "5143": {
-      "deviceMeta": {
+      "meta": {
         "vendorId": 273,
         "productId": 5143,
         "path": "IOService:/IOResources/IOBluetoothHCIController/AppleBroadcomBluetoothHostController/IOBluetoothDevice/IOBluetoothL2CAPChannel/IOBluetoothHIDDriver",
@@ -67,7 +67,7 @@
   },
   "1356": {
     "3290": {
-      "deviceMeta": {
+      "meta": {
         "vendorId": 1356,
         "productId": 3290,
         "path": "/dev/hidraw3",
@@ -131,10 +131,10 @@
   },
   "2064": {
     "58625": {
-      "listing": {
+      "meta": {
         "vendorId": 2064,
         "productId": 58625,
-        "path": "IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/XHC1@14/XHC1@14000000/HS08@14300000/USB2.0 Hub             @14300000/AppleUSB20Hub@14300000/AppleUSB20HubPort@14310000/usb gamepad           @14310000/IOUSBHostInterface@0/AppleUserUSBHostHIDDevice",
+        "path": "IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/XHC1@14/XHC1@14000000/HS14@14600000/USB2.0 Hub             @14600000/AppleUSB20Hub@14600000/AppleUSB20HubPort@14620000/usb gamepad           @14620000/IOUSBHostInterface@0/AppleUserUSBHostHIDDevice",
         "serialNumber": "",
         "manufacturer": "",
         "product": "usb gamepad           ",
@@ -144,67 +144,73 @@
         "usage": 4
       },
       "map": {
-        "up": {
-          "pos": 4,
-          "value": 0,
-          "idle": 127,
-          "updatedAt": 1590969155463
-        },
-        "down": {
-          "pos": 4,
-          "value": 255,
-          "idle": 127,
-          "updatedAt": 1590969155990
-        },
-        "left": {
-          "pos": 3,
-          "value": 0,
-          "idle": 127,
-          "updatedAt": 1590969157006
-        },
-        "right": {
-          "pos": 3,
-          "value": 255,
-          "idle": 127,
-          "updatedAt": 1590969157774
-        },
         "a": {
           "pos": 5,
           "value": 47,
           "idle": 15,
-          "updatedAt": 1590969158622
+          "updatedAt": 1619372012545,
+          "pressed": false
+        },
+        "up": {
+          "pos": 4,
+          "value": 0,
+          "idle": 127,
+          "updatedAt": 1619372022473,
+          "pressed": false
         },
         "b": {
           "pos": 5,
           "value": 31,
           "idle": 15,
-          "updatedAt": 1590969159270
-        },
-        "select": {
-          "pos": 6,
-          "value": 16,
-          "idle": 0,
-          "updatedAt": 1590969160078
+          "updatedAt": 1619372487403,
+          "pressed": false
         },
         "start": {
           "pos": 6,
           "value": 32,
           "idle": 0,
-          "updatedAt": 1590969160726
+          "updatedAt": 1619372487970,
+          "pressed": false
+        },
+        "select": {
+          "pos": 6,
+          "value": 16,
+          "idle": 0,
+          "updatedAt": 1619372488410,
+          "pressed": false
+        },
+        "right": {
+          "pos": 3,
+          "value": 255,
+          "idle": 127,
+          "updatedAt": 1619372488986,
+          "pressed": false
+        },
+        "left": {
+          "pos": 3,
+          "value": 0,
+          "idle": 127,
+          "updatedAt": 1619372489474,
+          "pressed": false
+        },
+        "down": {
+          "pos": 4,
+          "value": 255,
+          "idle": 127,
+          "updatedAt": 1619372489914,
+          "pressed": false
         }
       },
-      "deviceMeta": {
-        "vendorId": 2064,
-        "productId": 58625,
-        "path": "IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/XHC1@14/XHC1@14000000/HS08@14300000/USB2.0 Hub             @14300000/AppleUSB20Hub@14300000/AppleUSB20HubPort@14340000/USB2.0 Hub             @14340000/AppleUSB20Hub@14340000/AppleUSB20HubPort@14343000/usb gamepad           @14343000/IOUSBHostInterface@0/AppleUserUSBHostHIDDevice",
-        "serialNumber": "",
-        "manufacturer": "",
-        "product": "usb gamepad           ",
-        "release": 262,
-        "interface": 0,
-        "usagePage": 1,
-        "usage": 4
-      }
+      "idle": [
+        1,
+        128,
+        128,
+        127,
+        127,
+        15,
+        0,
+        0
+      ]
     }
   }
 }

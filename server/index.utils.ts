@@ -11,7 +11,9 @@ export function listGameDevices(): {index: number, device: IDeviceMeta}[] {
   return listDevices().map((device, index) => ({device, index})).filter(item => isDeviceController(item.device));
 }
 
-export async function listenToDeviceByMeta(deviceMeta): Promise<GameController> {
+export async function listenToDeviceByMeta(
+  deviceMeta: IDeviceMeta
+): Promise<GameController> {
   const gameController = getGameControllerByMeta(deviceMeta)
   gameController.listen();
   return gameController.paramIdle()
@@ -19,6 +21,6 @@ export async function listenToDeviceByMeta(deviceMeta): Promise<GameController> 
 
 export function getGameControllerByMeta(deviceMeta: IDeviceMeta): GameController {
   const gameController = new GameController();
-  gameController.deviceMeta = deviceMeta;
+  gameController.meta = deviceMeta;
   return gameController
 }

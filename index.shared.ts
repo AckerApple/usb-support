@@ -9,5 +9,5 @@ export function isDeviceController(device: IDeviceMeta): boolean {
 }
 
 export function devicesMatch(device: IDeviceMeta, lDevice: IDeviceMeta): boolean {
-  return device.productId === lDevice.productId && device.vendorId === lDevice.vendorId
+  return device === lDevice || device.productId === lDevice.productId && device.vendorId === lDevice.vendorId
 }

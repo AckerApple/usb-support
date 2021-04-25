@@ -1,4 +1,4 @@
-import { DeviceProductLayout, IDeviceMeta, WssMessage } from '../shared/typings'
+import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from '../shared/typings'
 import { listenToDeviceByMeta, listDevices } from './index.utils'
 import { SocketMessageType } from '../shared/enums'
 import { GameController } from './GameController'
@@ -26,36 +26,44 @@ export class HandlerClass {
   }
 
   reestablish() {
-    scope.usbListeners.filter(control => this.isControlSubscribed(control))
-      .forEach(control => this.subscribeToController(control))
+    scope.usbListeners.forEach(control => this.paramDeviceSub(control))
     this.emitListeners()
     return this.emitSavedControllers()
   }
 
+  paramDeviceSub(control: GameController) {
+    if (this.isControlSubscribed(control)) {
+      return
+    }
+
+    this.subscribeToController(control)
+    if (control.idle) {
+      this.send(SocketMessageType.DEVICEEVENT_CHANGE, {device: control.meta, event: control.idle})
+    }
+  }
+
   emitDevices() {
     const devices = listDevices()
-    console.log('devices', devices.length)
     this.send(SocketMessageType.DEVICES, devices)
   }
 
   /** send ws message of who we are listening to */
   emitListeners() {
-    const devices = scope.usbListeners.map(gameController => gameController.deviceMeta)
-    console.log('listeners', devices.length)
+    const devices = scope.usbListeners.map(gameController => gameController.meta)
     this.send(SocketMessageType.LISTENERS, devices)
-    console.log('sent listener update')
+    console.log('sent listener update', devices.length)
     return this
   }
 
   unsubscribeDevice(device: IDeviceMeta) {
-    const gameController = scope.usbListeners.find(gc => devicesMatch(gc.deviceMeta, device))
+    const gameController = scope.usbListeners.find(gc => devicesMatch(gc.meta, device))
     if (gameController) {
       scope.usbListeners = scope.usbListeners.filter(
-        gc => !devicesMatch(gc.deviceMeta, device)
+        gc => !devicesMatch(gc.meta, device)
       )
       gameController.close()
       this.controlSubs = this.controlSubs.filter(item => {
-        if (item.control.deviceMeta === device) {
+        if (item.control.meta === device) {
           item.sub.unsubscribe()
           return false
         }
@@ -68,7 +76,7 @@ export class HandlerClass {
 
   async listenToDevice(device: IDeviceMeta): Promise<void> {
     // are we already listening?
-    let gameController = scope.usbListeners.find(gc => devicesMatch(gc.deviceMeta, device))
+    let gameController = scope.usbListeners.find(gc => devicesMatch(gc.meta, device))
     if (!gameController) {
       gameController = await listenToDeviceByMeta(device)
       scope.usbListeners.push( gameController )
@@ -84,14 +92,27 @@ export class HandlerClass {
   }
 
   isControlSubscribed(controller: GameController) {
-    return this.controlSubs.find(item => item.control === controller)
+    // usbListeners
+    return this.controlSubs.find(item => devicesMatch(item.control.meta, controller.meta))
+  }
+
+  getSavedController(device: IDeviceMeta): DeviceProductLayout | undefined {
+    const vendorId = String(device.vendorId)
+    const productId = String(device.productId)
+    const products = controlConfigs[vendorId]
+
+    if (!products) {
+      return
+    }
+
+    return products[productId]
   }
 
   subscribeToController(control: GameController) {
     const deviceSub = control.change.subscribe(event => {
       this.send(
         SocketMessageType.DEVICEEVENT_CHANGE,
-        {device: control.deviceMeta, event}
+        {device: control.meta, event}
       )
     })
 
@@ -114,21 +135,26 @@ export class HandlerClass {
   }
 
   saveController(controller: DeviceProductLayout) {
-    const {vendorId, productId} = controller.deviceMeta
+    const {vendorId, productId} = controller.meta
     const vendorOb = controlConfigs[vendorId] = controlConfigs[vendorId] || {}
 
     vendorOb[productId] = controller
+    this.saveControllers(controlConfigs)
+  }
+
+  saveControllers(data: ControllerConfigs) {
+    Object.keys(controlConfigs).forEach(vendorId => delete controlConfigs[vendorId])
+    Object.keys(data).forEach(vendorId => controlConfigs[vendorId] = data[vendorId])
 
     const filePath = path.join(__dirname, '../controllers.json')
-    fs.writeFileSync(filePath, JSON.stringify(controlConfigs, null, 2))
-    // controlConfigs
-    // controllers.json
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
   }
 
   handleMessage(request: WssMessage) {
     switch (request.type) {
-      case SocketMessageType.SAVEDCONTROLLERS:
-        this.saveController(request.data);
+      case SocketMessageType.SAVECONTROLLERS:
+        console.log('saving controllers')
+        this.saveControllers(request.data);
         break
 
       case SocketMessageType.GETSAVEDCONTROLLERS:

@@ -6,6 +6,7 @@ import { ISubscriber, GameController } from "./server/GameController";
 import { listDevices, listenToDeviceByMeta, listGameDevices, delayLog } from './server/index.utils'
 import { isDeviceController } from './index.shared'
 import listenMapController from './listenMapController.function';
+import { IDeviceMeta } from "./shared/typings";
 
 // HID.setDriverType('libusb');
 
@@ -171,7 +172,7 @@ function consoleSavedDevices() {
   console.log()
   const log = Object.keys(devices).map(vendor => {
     return Object.keys(devices[vendor]).map(product => {
-      const deviceMeta = devices[vendor][product].deviceMeta;
+      const deviceMeta = devices[vendor][product].meta;
       return {
         manufacturer: deviceMeta.manufacturer,
         product: deviceMeta.product,
@@ -223,15 +224,15 @@ async function logAllControllerChanges() {
   for (let x = 0; x < devices.length; ++x) {
     const device = devices[x]
     try {
-      console.log(`-> Opening device ${x} ` + device.deviceMeta.product);
-      await listenToDeviceByMeta(device.deviceMeta).then(() => {
-        console.log("-> Opened " + device.deviceMeta.product);
+      console.log(`-> Opening device ${x} ` + device.meta.product);
+      await listenToDeviceByMeta(device.meta).then(() => {
+        console.log("-> Opened " + device.meta.product);
       }).catch((err: Error) => {
-        console.log(red(`-> Failed to open device ${x} ` + device.deviceMeta.product));
+        console.log(red(`-> Failed to open device ${x} ` + device.meta.product));
         console.error(red(err.message))
       })
     } catch (err) {
-      console.log(red(`-> Failed to open device ${x} ` + device.deviceMeta.product));
+      console.log(red(`-> Failed to open device ${x} ` + device.meta.product));
       console.error(red(err.message));
     }
   }
@@ -249,17 +250,11 @@ function listenToDeviceByIndex(index) {
   .catch((err: Error) => console.error(err));
 }
 
-async function logListenToDeviceByMeta(deviceMeta): Promise<GameController> {
-    console.log(cyan("capturing idle state of " + deviceMeta.product));
-    return listenToDeviceByMeta(deviceMeta).then(gameController => {
-    console.log(cyan("idle state captured of " + deviceMeta.product));
-    gameController.events.on("change", (data) => {
-      const product = deviceMeta.product.trim();
-      console.log(`${product} map: `, gameController.getLastPinsString());
-
-    });
-
-    console.log(cyan("Listening to device: ") + deviceMeta.product);
+async function logListenToDeviceByMeta(deviceMeta: IDeviceMeta): Promise<GameController> {
+  console.log(cyan("capturing idle state of " + deviceMeta.product))
+  return listenToDeviceByMeta(deviceMeta).then(gameController => {
+    console.log(cyan("idle state captured of " + deviceMeta.product))
+    console.log(cyan("Listening to device: ") + deviceMeta.product)
 
     return gameController;
   }).catch((err: Error) => {
@@ -274,11 +269,11 @@ function pairGameController(): Promise<any> {
   listenToControllers(controllers)
   mapControllersIdle(controllers);
 
-  console.log("Listening to controllers: ", controllers.map(controller => controller.deviceMeta.product))
+  console.log("Listening to controllers: ", controllers.map(controller => controller.meta.product))
 
   return requestOneControllerFrom(controllers).then((controller) => {
     closeControllers(controllers);
-    console.log(cyan(`Working with ${controller.deviceMeta.product}`));
+    console.log(cyan(`Working with ${controller.meta.product}`));
 
 
     return controller.listen().promiseNextIdle();
@@ -332,12 +327,12 @@ function requestOneControllerFrom(controllers: GameController[]): Promise<GameCo
     const listeners: ISubscriber[] = [];
     return new Promise((res) => {
       controllers.forEach(controller => {
-        const notIdleListener = controller.subscribe("notIdle", () => {
-          console.log("Controller active: " + controller.deviceMeta.product)
+        const notIdleListener = controller.notIdle.subscribe(() => {
+          console.log("Controller active: " + controller.meta.product)
         });
 
-        const idleListener = controller.subscribe("idle", () => {
-          console.log("Controller idle: " + controller.deviceMeta.product)
+        const idleListener = controller.$idle.subscribe(() => {
+          console.log("Controller idle: " + controller.meta.product)
         });
 
         listeners.push(idleListener, notIdleListener);
@@ -355,7 +350,7 @@ function requestOneControllerFrom(controllers: GameController[]): Promise<GameCo
 function getGameControllers(): GameController[] {
   return listGameDevices().map(item => {
     const gameController = new GameController();
-    gameController.deviceMeta = item.device;
+    gameController.meta = item.device;
     // gameController.device = new HID.HID(item.device.vendorId, item.device.productId);
     return gameController;
   });
@@ -365,10 +360,12 @@ export function mapDeviceByIndex(index) {
   const gameController = new GameController();
   const devices = listDevices();
   const deviceMeta = devices[index];
-  gameController.deviceMeta = deviceMeta;
+  gameController.meta = deviceMeta;
   gameController.listen()
-  // gameController.device = new HID.HID(deviceMeta.vendorId, deviceMeta.productId);
+
   listenMapController(gameController);
+
   openDevices.push(gameController.device);
+
   return "";
 }

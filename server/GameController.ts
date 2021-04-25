@@ -21,6 +21,7 @@ export interface ISubscriber {
 }
 
 export class GameController extends GameControlEvents {
+  // events: any
   device: IDevice;
   $data: Subject<number[]> = new Subject()
   listener: (data: number[]) => any
@@ -28,7 +29,7 @@ export class GameController extends GameControlEvents {
 
   // device can be asked for state versus always reporting its state
   allowsInterfacing() {
-    return this.deviceMeta.interface === 0 ? false : true;
+    return this.meta.interface === 0 ? false : true;
   }
 
   onNextChangeHold(callback: () => any, timeMs: number = 2000) {
@@ -96,10 +97,10 @@ export class GameController extends GameControlEvents {
     }
 
     if (!this.device) {
-      if (this.deviceMeta) {
+      if (this.meta) {
         this.device = this.tryConnection()
       } else {
-        throw new Error("GameController.deviceMeta has not been set. Need vendorId and productId");
+        throw new Error("GameController.meta has not been set. Need vendorId and productId");
       }
     }
 
@@ -121,7 +122,7 @@ export class GameController extends GameControlEvents {
 
   tryConnection() {
     try {
-      return new HID.HID(this.deviceMeta.path);
+      return new HID.HID(this.meta.path);
     } catch (err) {
       console.warn("Could not connect by path", err.message);
       return this.tryVendorProductConnection()
@@ -130,9 +131,9 @@ export class GameController extends GameControlEvents {
 
   tryVendorProductConnection() {
     try {
-      return new HID.HID(this.deviceMeta.vendorId, this.deviceMeta.productId);
+      return new HID.HID(this.meta.vendorId, this.meta.productId);
     } catch (err) {
-      err.message = err.message + `(vId:${this.deviceMeta.vendorId} pId:${this.deviceMeta.productId} ${this.deviceMeta.product})`
+      err.message = err.message + `(vId:${this.meta.vendorId} pId:${this.meta.productId} ${this.meta.product})`
       err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
       console.error("Could not connect to device", err);
       console.warn(err.tip);
@@ -160,7 +161,7 @@ export class GameController extends GameControlEvents {
 
     return new Promise((res, rej) => {
       const timeout = setTimeout(() => {
-        rej(new Error(`Could not map idle state of ${this.deviceMeta.product} in timely fashion`))
+        rej(new Error(`Could not map idle state of ${this.meta.product} in timely fashion`))
       }, 1000);
 
       const dataReader = (data) => {
@@ -171,7 +172,7 @@ export class GameController extends GameControlEvents {
 
       this.device.read((err, data) => {
         if (err) {
-          rej(new Error(`Could not map idle state of ${this.deviceMeta.product} due to ${err.message}`))
+          rej(new Error(`Could not map idle state of ${this.meta.product} due to ${err.message}`))
           return;
         }
 

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core'
-import { WssMessage, IDeviceMeta } from '../../../shared/typings'
+import { DeviceProductLayout, ControllerConfigs, ButtonsMap, WssMessage, IDeviceMeta } from '../../../shared/typings'
 import { SocketMessageType } from '../../../shared/enums'
 import GameControlEvents from './GameControlEvents'
 import mapController from './mapController.function'
@@ -9,21 +9,20 @@ import {
 import { devicesMatch, isDeviceController } from '../../../index.shared'
 import decodeDeviceMetaState from './decodeControllerButtonStates.function'
 import { ack } from 'ack-x/js/ack'
+import { textChangeRangeIsUnchanged } from 'typescript'
 
 const socketHost = window.location.hostname
 
-export interface IDeviceMetaState extends IDeviceMeta {
-  subscribed: boolean
-  lastEvent: any
-  map?: {
-    [buttonName: string]: {
-      pressed: boolean
-      idle?: number
-      pos: number
-    }
-  } // populated if matched to savedController
+export interface IDeviceMetaState {
+  meta: IDeviceMeta
+  idle?: number[]
+  recording?: boolean
+  subscribed?: boolean
+  lastEvent?: number[]
+  map?: ButtonsMap // populated if matched to savedController
   pressed?: string[] // populated if matched to savedController
 }
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -38,8 +37,8 @@ export class AppComponent {
   listeners: IDeviceMetaState[] = []
   controllers: IDeviceMeta[] = []
   nonControllers: IDeviceMeta[] = []
-  savedControllers: Record<string, any> = {}
-  savedController: Record<string, any>
+  savedControllers: ControllerConfigs = {}
+  savedController: DeviceProductLayout // One controller being reviewed
 
   debug: DebugData = {
     state: 'initializing',
@@ -91,14 +90,23 @@ export class AppComponent {
       this.debug.state = 'message-received'
       ++this.debug.messages
 
+      let data: WssMessage
+
       try {
-        const data: WssMessage = JSON.parse(e.data)
+        data = JSON.parse(e.data)
         this.debug.lastWssData = data
-        this.handleMessage(data)
       } catch (err) {
         console.log('e.data', e)
         this.error(err, 'client message failed');
         (this.debug.socket as any).error = err
+      }
+
+
+      try {
+        this.handleMessage(data)
+      } catch (err) {
+        this.error({error:err, data}, `error executing message ${data.type}`);
+        throw err
       }
     }
   }
@@ -107,15 +115,28 @@ export class AppComponent {
     mapController(controller)
   }
 
+  toggleDeviceRecord(deviceMeta: IDeviceMetaState) {
+    deviceMeta.recording = !deviceMeta.recording
+  }
+
+  devicesUpdate(data: IDeviceMeta[]) {
+    data.forEach((device, index) => {
+      this.devices[index] = this.devices[index] || {meta: device}
+      this.devices[index].meta = device
+    })
+
+    const devices = this.devices.map(device => device.meta)
+    this.controllers = devices.filter(device => isDeviceController(device))
+    this.nonControllers = devices.filter(device => !isDeviceController(device))
+
+    this.log('controllers', this.controllers)
+    this.log('other devices', this.nonControllers)
+  }
+
   handleMessage(data: WssMessage) {
     switch (data.type) {
       case SocketMessageType.DEVICES:
-        console.log('data.data', data)
-        this.devices = data.data
-        this.controllers = this.devices.filter(device => isDeviceController(device))
-        this.nonControllers = this.devices.filter(device => !isDeviceController(device))
-        this.log('controllers', this.controllers)
-        this.log('other devices', this.nonControllers)
+        this.devicesUpdate(data.data)
         break;
 
       case SocketMessageType.SAVEDCONTROLLERS:
@@ -126,43 +147,11 @@ export class AppComponent {
         break;
 
       case SocketMessageType.LISTENERS:
-        const devices = data.data
-        this.log({
-          message: `listeners update received ${devices.length}`
-        })
-        this.listeners = devices
-        this.listeners.forEach(lDevice => {
-          this.devices.forEach(device => {
-            if (devicesMatch(device, lDevice)) {
-              device.subscribed = true
-            }
-          })
-        })
+        this.onListeners(data.data)
         break
 
       case SocketMessageType.DEVICEEVENT_CHANGE:
-        const event = data.data.event
-        const eventDevice = data.data.device
-
-        // this.log({message: `device change event`, data})
-        const matchedListener = this.listeners.find(
-          device => devicesMatch(device, eventDevice)
-        )
-
-        if (matchedListener) {
-          matchedListener.lastEvent = event
-
-          if (this.savedController && devicesMatch(matchedListener, this.savedController.deviceMeta)) {
-            const pressedKeyNames = decodeDeviceMetaState(matchedListener)
-            matchedListener.pressed = pressedKeyNames
-            matchedListener.map = this.savedController.map
-
-            Object.entries(matchedListener.map).forEach(current => {
-              const key = current[0]
-              current[1].pressed = pressedKeyNames.includes(key)
-            })
-          }
-        }
+        this.onDeviceEventChange(data.data.event.data, data.data.device)
         break
 
       case SocketMessageType.ERROR:
@@ -174,12 +163,145 @@ export class AppComponent {
     }
   }
 
+  onListeners(devices: IDeviceMeta[]) {
+    this.log({message: `listeners update received`, devices})
+
+    this.listeners.length = devices.length
+
+    devices.forEach((device,index) => {
+      this.listeners[index] = this.listeners[index] || {
+        meta: device, subscribed: true
+      }
+
+      const saved = this.getSavedControlByDevice(device)
+
+      if (saved) {
+        Object.assign(this.listeners[index], saved)
+      }
+
+      this.listeners[index].meta = device
+    })
+
+    this.controllers.forEach(controller => {
+      const find = this.listeners.find(lDevice =>
+        devicesMatch(controller, lDevice.meta)
+      )
+
+      if (find) {
+        return (controller as any).subscribed = true
+      }
+      delete (controller as any).subscribed
+    })
+
+  }
+
+  getSavedControlByDevice(device: IDeviceMeta): DeviceProductLayout | undefined {
+    const vendorId = String(device.vendorId)
+    const productId = String(device.productId)
+    const products = this.savedControllers[vendorId]
+
+    if (!products) {
+      return
+    }
+
+    return products[productId]
+  }
+
+  onDeviceEventChange(event: number[], device: IDeviceMeta) {
+    const matchedListener = this.listeners.find(
+      listener => devicesMatch(listener.meta, device)
+    )
+
+    // no match? no work to do
+    if (!matchedListener) {
+      return
+    }
+    matchedListener.lastEvent = event
+    const listener = this.getDeviceListener(device)
+    if (listener) {
+      this.processDeviceUpdate(matchedListener)
+    }
+  }
+
+  getDeviceListener(device: IDeviceMeta): IDeviceMetaState | undefined {
+    return this.listeners.find(listener => devicesMatch(listener.meta, device))
+  }
+
+  processDeviceUpdate(matchedListener: IDeviceMetaState) {
+    console.log(0, matchedListener)
+    const pressedKeyNames = decodeDeviceMetaState(matchedListener)
+    matchedListener.pressed = pressedKeyNames
+    matchedListener.map = matchedListener.map || {}
+
+    if(matchedListener.recording && !pressedKeyNames.length) {
+      this.recordDeviceEvent(matchedListener)
+    }
+
+    // loop each known button and set its pressed property
+    Object.entries(matchedListener.map).forEach(current => {
+      const key = current[0]
+      current[1].pressed = pressedKeyNames.includes(key)
+    })
+  }
+
+  recordDeviceEvent(matchedListener: IDeviceMetaState) {
+    const idleMap = matchedListener.idle
+    const pressedKeyNames = matchedListener.pressed
+    const isIdle = eventsMatch(matchedListener.lastEvent, idleMap)
+    if (isIdle) {
+      return
+    }
+
+    const event = matchedListener.lastEvent
+    for (let index = event.length - 1; index >= 0; --index) {
+      if (event[index] != idleMap[index]) {
+        matchedListener.map[`unknown${Object.keys(matchedListener.map).length}`] = {
+          pos: index,
+          value: event[index],
+          idle: idleMap[index],
+          updatedAt: Date.now(),
+        }
+      }
+    }
+
+    console.log('5 recording event came in', {
+      map: matchedListener.map, pressedKeyNames, lastEvent:matchedListener.lastEvent
+    })
+  }
+
+  confirmDeleteController(controller: DeviceProductLayout) {
+    if (!confirm(`confirm delete ${getDeviceLabel(controller.meta)}`)) {
+      return
+    }
+
+    const vendorId = String(controller.meta.vendorId)
+    const productId = String(controller.meta.productId)
+    const products = this.savedControllers[vendorId]
+    delete products[productId]
+
+    this.saveControllers()
+  }
+
+  saveController(controller: IDeviceMetaState) {
+    const products = this.savedControllers[controller.meta.vendorId]
+    products[controller.meta.productId] = {
+      meta: controller.meta,
+      map: controller.map,
+      idle: controller.idle,
+    }
+    this.saveControllers()
+  }
+
+  saveControllers() {
+    this.wssSend(SocketMessageType.SAVECONTROLLERS, this.savedControllers)
+  }
+
   addTestController() {
     this.controllers.push(testController)
     this.devices.push({
       subscribed: false,
-      lastEvent: {},
-      ...testController
+      lastEvent: [],
+      meta: testController
     })
   }
 
@@ -202,12 +324,9 @@ export class AppComponent {
     this.wssSend(SocketMessageType.GETSAVEDCONTROLLERS)
   }
 
-  listenToDevice(device: IDeviceMetaState) {
-    let stringRef = device.product?.trim() || ''
-
-    if (device.manufacturer) {
-      stringRef += ' by '+ device.manufacturer
-    }
+  listenToDevice(device: IDeviceMeta) {
+    console.log('device', device)
+    const stringRef = getDeviceLabel(device)
 
     this.log({
       message: `attempting to listen to ${stringRef}`, device
@@ -215,11 +334,14 @@ export class AppComponent {
 
     let type: SocketMessageType = SocketMessageType.LISTENTODEVICE
 
-    const deviceMatch = this.listeners.find(xDevice=>devicesMatch(device, xDevice))
+    const deviceMatch = this.listeners.find(xDevice => devicesMatch(device, xDevice.meta))
     if(deviceMatch){
       type = SocketMessageType.UNSUBSCRIBEDEVICE
-      delete device.subscribed
       delete deviceMatch.subscribed
+      const controller = this.deviceToController(deviceMatch.meta);
+      (controller as any).subscribed = false
+      console.log('controller --- ', controller);
+
       this.log({
         message: `Unsubscribed from ${stringRef}`
       })
@@ -227,7 +349,9 @@ export class AppComponent {
 
     console.log('current', this.savedControllers)
     const savedControllers =  Object.values(this.savedControllers).reduce((all, current) => [...all,...Object.values(current)], [])
-    const savedController = savedControllers.find(xSaved=>devicesMatch(device, xSaved.deviceMeta))
+    const savedController = savedControllers.find(
+      xSaved => devicesMatch(device, xSaved.meta)
+    )
 
     if (savedController) {
       this.savedController = savedController
@@ -252,7 +376,11 @@ export class AppComponent {
     }
   }
 
-  error(error: Event | Error, ...extra) {
+  deviceToController(device: IDeviceMeta) {
+    return this.controllers.find(control => devicesMatch(device, control))
+  }
+
+  error(error: any, ...extra) {
     if (typeof error === 'string') {
       error = new Error(error)
     }
@@ -276,6 +404,11 @@ export class AppComponent {
 
     console.log(data)
   }
+
+  stringUpdateSavedController(controller: DeviceProductLayout, newData: string) {
+    this.savedController = JSON.parse(newData)
+    this.saveController(this.savedController)
+  }
 }
 
 const testController: IDeviceMeta = {
@@ -287,7 +420,6 @@ const testController: IDeviceMeta = {
   vendorId: -32,
   product: 'test-product',
   manufacturer: 'test-manu',
-
 }
 
 interface DebugData {
@@ -301,4 +433,18 @@ interface DebugData {
     info: Record<string, any>
     error?: Record<string, any>
   }
+}
+
+function getDeviceLabel(device: IDeviceMeta) {
+  let stringRef = device.product?.trim() || ''
+
+  if (device.manufacturer) {
+    stringRef += ' by '+ device.manufacturer
+  }
+
+  return stringRef
+}
+
+function eventsMatch(event0: number[], event1: number[]) {
+  return event0.every((item,index) => item === event1[index])
 }

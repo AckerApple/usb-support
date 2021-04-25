@@ -1,14 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
 import { GameController } from "./server/GameController";
-import mapController from "./mapController.function";
+import mapController from "./webapp/src/app/mapController.function";
 // import { GameControlEvents as GameController } from "./GameControlEvents";
 const controllersFilePath = path.join(process.cwd(), "controllers.json");
 
 export default function listenMapController(
   gameController: GameController
 ): Promise<void> {
-  console.log("pairing with controller " + gameController.deviceMeta.product);
+  console.log("pairing with controller " + gameController.meta.product);
 
   gameController.listen().paramIdle().then(() => {
     console.log("paired with controller")
@@ -17,12 +17,12 @@ export default function listenMapController(
   return mapController(gameController)
     .then(readControllerFile)
     .then((controllerFile) => {
-      const vendorId = this.gameController.deviceMeta.vendorId
-      const productId = this.gameController.deviceMeta.productId
+      const vendorId = this.gameController.meta.vendorId
+      const productId = this.gameController.meta.productId
       const vendors = controllerFile[vendorId] = controllerFile[vendorId] || {}
 
       vendors[productId] = vendors[productId] || {}
-      vendors[productId].deviceMeta = this.gameController.deviceMeta
+      vendors[productId].meta = this.gameController.meta
       vendors[productId].map = this.gameController.map
 
       return controllerFile

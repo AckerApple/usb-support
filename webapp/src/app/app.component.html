@@ -6,19 +6,26 @@
 </style>
 <div style="display:flex;flex-wrap:wrap" class="child-pad-xs child-margin-xs">
   <div class="flex2 border border-radius-10">
-    <h3>listeners: {{listeners.length}}</h3>
+    <h3>Listeners: {{listeners.length}}</h3>
     <textarea class="code" wrap="off" [style.height.em]="25 * listeners.length">
       {{listeners | json}}
     </textarea>
-    <div *ngFor="let item of listeners" style="display:flex;flex-wrap:wrap;">
-      <div *ngFor="let value of item.lastEvent?.data" style="border:1px solid black;border-radius: 5px;margin:1em;padding:.5em;">
-        {{value}}
+    <div *ngFor="let item of listeners" class="flex-wrap flex-valign-center">
+      <button (click)="saveController(item)"
+      >save</button>
+      <button *ngIf="item.lastEvent" (click)="item.idle = item.lastEvent"
+      >capture idle</button>
+      <button *ngIf="item.idle" [class.bg-warning]="item.recording" (click)="toggleDeviceRecord(item)"
+      >record</button>
+
+      <!-- visual bit map -->
+      <div class="flex">
+        <div *ngFor="let value of item.lastEvent"
+          style="border:1px solid black;border-radius: 5px;margin:.3em;padding:.5em;"
+        >{{'000' + value | slice : -3}}</div>
       </div>
-      <!--
-        <div *ngFor="let value of item.pressed" style="border:1px solid black;border-radius: 5px;margin:1em;padding:.5em;">
-          {{value}}
-        </div>
-      -->
+
+      <!-- visual button map -->
       <div style="display:flex;flex-wrap:wrap">
         <div>
           <ng-container *ngFor="let button of item.map | keyvalue">
@@ -37,8 +44,7 @@
     <div class="flex-wrap">
       <div style="display:flex;flex-wrap: wrap;">
         <div *ngFor="let item of controllers">
-          <button
-            type="button" style="margin:.5em;font-size:1.1em;padding:.4em;"
+          <button type="button" style="margin:.5em;font-size:1.1em;padding:.4em;"
             (click)="listenToDevice(item)"
             [style.background-color] = "item.subscribed && 'blue'"
             [style.color] = "item.subscribed && 'white'"
@@ -75,16 +81,18 @@
             [style.background-color] = "savedController === item.value && 'blue' || null"
             [style.color] = "savedController === item.value && 'white' || null"
           >
-            {{ item.value.deviceMeta.product || item.value.deviceMeta.productId + ':' + item.value.deviceMeta.vendorId }}
+            {{ item.value.meta.product || item.value.meta.productId + ':' + item.value.meta.vendorId }}
           </button>
         </div>
       </ng-container>
     </div>
 
     <div class="flex1 border border-radius-10" *ngIf="savedController">
-      <h3>Saved Controller: {{ savedController.deviceMeta.product || savedController.deviceMeta.productId + ':' + item.value.deviceMeta.vendorId }}</h3>
+      <h3>Saved Controller: {{ savedController.meta.product || savedController.meta.productId + ':' + item.value.meta.vendorId }}</h3>
       <p>Details of past connected and saved controllers</p>
-      <textarea class="code" wrap="off">{{savedController | json}}</textarea>
+      <textarea class="code" wrap="off" (change)="stringUpdateSavedController(savedController,$event.target.value)">{{savedController | json}}</textarea>
+      <button (click)="saveControllers()">save</button>
+      <button (click)="confirmDeleteController(savedController)">delete</button>
     </div>
   </div>
 

@@ -4,6 +4,7 @@ export enum SocketMessageType {
   LISTENTODEVICE = 'listenToDevice',
   REFRESH = 'refresh',
   GETSAVEDCONTROLLERS = 'getSavedControllers',
+  SAVECONTROLLERS = 'save_controllers',
 
   // server side
   DEVICEEVENT_CHANGE = 'deviceEvent.change',
