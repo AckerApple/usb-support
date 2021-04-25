@@ -7,12 +7,18 @@ import * as WebSocket from 'ws'
 import { scope } from './server.start'
 import * as path from 'path'
 import * as fs from 'fs'
+import { saveControllerToConfigs } from '../index.shared'
+import { GameController } from './GameController'
 
 export const controlConfigs: ControllerConfigs = controllers
 
 export default class WsHandler extends HandlerClass {
-  constructor(public ws: WebSocket.Server) {
-    super()
+  constructor(
+    public ws: WebSocket.Server,
+    public controllerConfigs?: ControllerConfigs,
+    public listeners?: GameController[],
+  ) {
+    super(controllerConfigs, listeners)
 
     this.subs.add(
       this.error.subscribe(err =>
@@ -63,10 +69,7 @@ export default class WsHandler extends HandlerClass {
   }
 
   saveController(controller: DeviceProductLayout) {
-    const {vendorId, productId} = controller.meta
-    const vendorOb = controlConfigs[vendorId] = controlConfigs[vendorId] || {}
-
-    vendorOb[productId] = controller
+    saveControllerToConfigs(controller, controlConfigs)
     this.saveControllers(controlConfigs)
   }
 

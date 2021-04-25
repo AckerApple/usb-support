@@ -1,7 +1,7 @@
 import { socketPort } from '../shared/config.json'
 import { GameController } from './GameController'
 import { WssMessage } from '../shared/typings'
-import WsHandler from './WsHandler.class'
+import WsHandler, { controlConfigs } from './WsHandler.class'
 import * as WebSocket from 'ws'
 import * as nconf from "nconf"
 
@@ -36,9 +36,9 @@ export function startSocketServer() {
     console.log('------ connection opened', {connections: scope.connections.length})
 
     // give latest on who we listening to already
-    const handlerClass = new WsHandler(ws).reestablish()
+    const handlerClass = new WsHandler(ws, controlConfigs).reestablish()
 
-    ws.on('message', messageHandler(ws))
+    ws.on('message', messageHandler(ws, handlerClass))
     ws.on('close', () => {
       console.log('------ closing connection', {connections: scope.connections.length})
       scope.connections = scope.connections.filter(conn => conn !== ws)
@@ -49,8 +49,10 @@ export function startSocketServer() {
 
   console.log('websocket listening on port ' + socketPort)
 
-  function messageHandler(ws) {
-    const handlerClass = new WsHandler(ws)
+  function messageHandler(
+    ws: typeof WebSocket.Server, handlerClass: WsHandler
+  ): (message: any) => void {
+    // const handlerClass = new WsHandler(ws, handlerClass)
 
     return function messageHandler(message) {
       try {

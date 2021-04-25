@@ -9,11 +9,10 @@ export interface WssMessage {
 }
 
 export interface DeviceProductLayout {
-  meta: IDeviceMeta
+  map: ButtonsMap // populated if matched to savedController
   idle?: number[]
-  map: {
-    [button: string]: IButtonState
-  }
+  meta: IDeviceMeta
+  ignoreBits?: number[]
 }
 export interface IButtonState {
   pos: number

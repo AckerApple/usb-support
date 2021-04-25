@@ -1,12 +1,13 @@
-import { IDeviceMeta, WssMessage } from '../shared/typings'
+import { ControllerConfigs, IDeviceMeta, WssMessage } from '../shared/typings'
 import { listenToDeviceByMeta, listDevices } from './index.utils'
 import { SocketMessageType } from '../shared/enums'
 import { GameController } from './GameController'
-import { devicesMatch } from '../index.shared'
+import { cleanseDeviceEvent, devicesMatch, eventsMatch, getControlConfigByDevice, isDeviceEventsSame } from '../index.shared'
 import { Subject, Subscription } from 'rxjs'
 import { scope } from './server.start' // TODO: decouple this
 
 export class HandlerClass {
+  lastEvent: number[]
   deviceEvent: Subject<{device: IDeviceMeta, event: number[]}> = new Subject()
   error: Subject<Error> = new Subject()
   deviceUnsubscribed: Subject<IDeviceMeta> = new Subject()
@@ -16,6 +17,11 @@ export class HandlerClass {
   controlSubs: {control: GameController, sub: Subscription}[] = []
 
   listDevices = listDevices
+
+  constructor(
+    public controllerConfigs?: ControllerConfigs,
+    public listeners?: GameController[],
+  ) {}
 
   destroy() {
     this.subs.unsubscribe()
@@ -75,6 +81,16 @@ export class HandlerClass {
 
   subscribeToController(control: GameController) {
     const deviceSub = control.change.subscribe(event => {
+      const config = getControlConfigByDevice(this.controllerConfigs, control.meta)
+
+      if (config) {
+        event = cleanseDeviceEvent(config, event)
+        if (this.lastEvent && eventsMatch(event, this.lastEvent)) {
+          return // no real change. Perhaps ignored pins
+        }
+        this.lastEvent = event
+      }
+
       this.deviceEvent.next({device: control.meta, event})
     })
 

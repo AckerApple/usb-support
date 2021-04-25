@@ -20,8 +20,10 @@
 
       <!-- visual bit map -->
       <div class="flex">
-        <div *ngFor="let value of item.lastEvent"
-          style="border:1px solid black;border-radius: 5px;margin:.3em;padding:.5em;"
+        <div *ngFor="let value of item.lastEvent;let index=index"
+          class="border radius-5 cursor-pointer" style="margin:.3em;padding:.5em;"
+          [class.bg-danger] = "item.ignoreBits?.includes(index)"
+          (click) = "toggleIgnoreDeviceBit(item, index)"
         >{{'000' + value | slice : -3}}</div>
       </div>
 
@@ -93,6 +95,8 @@
     <p>Details of past connected and saved controllers</p>
     <textarea class="code" wrap="off" (change)="stringUpdateSavedController(savedController,$event.target.value)">{{savedController | json}}</textarea>
     <button (click)="saveControllers()">save</button>
+    <button (click)="downloadController(savedController)">download</button>
+    <button (click)="copyController(savedController)">copy</button>
     <button (click)="confirmDeleteController(savedController)">delete</button>
   </div>
 

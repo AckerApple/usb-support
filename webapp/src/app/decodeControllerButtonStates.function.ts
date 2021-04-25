@@ -1,4 +1,4 @@
-import { IDeviceMetaState } from './app.component'
+import { IDeviceMetaState } from './app.utils'
 import { ButtonsMap, IButtonState } from '../../../shared/typings'
 
 

@@ -1,27 +1,15 @@
 import { Component } from '@angular/core'
-import { DeviceProductLayout, ControllerConfigs, ButtonsMap, WssMessage, IDeviceMeta } from '../../../shared/typings'
+import { DeviceProductLayout, ControllerConfigs, WssMessage, IDeviceMeta } from '../../../shared/typings'
 import { SocketMessageType } from '../../../shared/enums'
 import GameControlEvents from './GameControlEvents'
 import mapController from './mapController.function'
-import {
-  // socketHost,
-  socketPort } from '../../../shared/config.json'
-import { devicesMatch, isDeviceController } from '../../../index.shared'
+import { socketPort } from '../../../shared/config.json'
+import { getControlConfigByDevice, eventsMatch, devicesMatch, isDeviceController } from '../../../index.shared'
 import decodeDeviceMetaState from './decodeControllerButtonStates.function'
 import { ack } from 'ack-x/js/ack'
-import { textChangeRangeIsUnchanged } from 'typescript'
+import { copyText, DebugData, download, getDeviceLabel, IDeviceMetaState, testController } from './app.utils'
 
 const socketHost = window.location.hostname
-
-export interface IDeviceMetaState {
-  meta: IDeviceMeta
-  idle?: number[]
-  recording?: boolean
-  subscribed?: boolean
-  lastEvent?: number[]
-  map?: ButtonsMap // populated if matched to savedController
-  pressed?: string[] // populated if matched to savedController
-}
 
 @Component({
   selector: 'app-root',
@@ -135,7 +123,7 @@ export class AppComponent {
 
   devicesUpdate(data: IDeviceMeta[]) {
     data.forEach((device, index) => {
-      this.devices[index] = this.devices[index] || {meta: device}
+      this.devices[index] = this.devices[index] || {meta: device, map: {}}
       this.devices[index].meta = device
     })
 
@@ -184,10 +172,10 @@ export class AppComponent {
 
     devices.forEach((device,index) => {
       this.listeners[index] = this.listeners[index] || {
-        meta: device, subscribed: true
+        meta: device, subscribed: true, map: {}
       }
 
-      const saved = this.getSavedControlByDevice(device)
+      const saved = this.getControlConfigByDevice(device)
 
       if (saved) {
         Object.assign(this.listeners[index], saved)
@@ -209,16 +197,8 @@ export class AppComponent {
 
   }
 
-  getSavedControlByDevice(device: IDeviceMeta): DeviceProductLayout | undefined {
-    const vendorId = String(device.vendorId)
-    const productId = String(device.productId)
-    const products = this.savedControllers[vendorId]
-
-    if (!products) {
-      return
-    }
-
-    return products[productId]
+  getControlConfigByDevice(device: IDeviceMeta): DeviceProductLayout | undefined {
+    return getControlConfigByDevice(this.savedControllers, device)
   }
 
   onDeviceEventChange(event: number[], device: IDeviceMeta) {
@@ -242,7 +222,6 @@ export class AppComponent {
   }
 
   processDeviceUpdate(matchedListener: IDeviceMetaState) {
-    console.log(0, matchedListener)
     const pressedKeyNames = decodeDeviceMetaState(matchedListener)
     matchedListener.pressed = pressedKeyNames
     matchedListener.map = matchedListener.map || {}
@@ -297,12 +276,18 @@ export class AppComponent {
   }
 
   saveController(controller: IDeviceMetaState) {
-    const products = this.savedControllers[controller.meta.vendorId]
-    products[controller.meta.productId] = {
-      meta: controller.meta,
-      map: controller.map,
-      idle: controller.idle,
-    }
+    const vendorId = controller.meta.vendorId
+    const products = this.savedControllers[vendorId] = this.savedControllers[vendorId] || {}
+    const productId = controller.meta.productId
+
+    const saveData = { ...controller }
+    delete saveData.lastEvent
+    delete saveData.subscribed
+    delete saveData.recording
+    delete saveData.pressed
+
+    products[productId] = saveData
+
     this.saveControllers()
   }
 
@@ -313,6 +298,7 @@ export class AppComponent {
   addTestController() {
     this.controllers.push(testController)
     this.devices.push({
+      map: {},
       subscribed: false,
       lastEvent: [],
       meta: testController
@@ -423,42 +409,26 @@ export class AppComponent {
     this.savedController = JSON.parse(newData)
     this.saveController(this.savedController)
   }
-}
 
-const testController: IDeviceMeta = {
-  path: 'test-path',
-  interface: -1,
-  usage: -1,
-  usagePage: -1,
-  productId: -1,
-  vendorId: -32,
-  product: 'test-product',
-  manufacturer: 'test-manu',
-}
+  toggleIgnoreDeviceBit(item: IDeviceMetaState, index: number) {
+    item.ignoreBits = item.ignoreBits || []
 
-interface DebugData {
-  state: 'initializing' | 'constructing' | 'constructed' | 'message-received' | 'socket opened'
-  messages: number
-  url: string
-  socket: Record<string, any>,
-  lastWssData: Record<string, any>,
-  lastPayload: Record<string, any>,
-  lastLogs: {
-    info: Record<string, any>
-    error?: Record<string, any>
-  }
-}
+    const ignoreIndex = item.ignoreBits.indexOf(index)
 
-function getDeviceLabel(device: IDeviceMeta) {
-  let stringRef = device.product?.trim() || ''
+    if (ignoreIndex===-1) {
+      return item.ignoreBits.push(index)
+    }
 
-  if (device.manufacturer) {
-    stringRef += ' by '+ device.manufacturer
+    item.ignoreBits.splice(ignoreIndex, 1)
   }
 
-  return stringRef
-}
+  downloadController(controller: DeviceProductLayout) {
+    const filename = getDeviceLabel(controller.meta) + '.json'
+    const data = JSON.stringify(controller, null, 2)
+    download(filename, data)
+  }
 
-function eventsMatch(event0: number[], event1: number[]) {
-  return event0.every((item,index) => item === event1[index])
+  copyController(controller: DeviceProductLayout) {
+    copyText(JSON.stringify(controller, null, 2))
+  }
 }

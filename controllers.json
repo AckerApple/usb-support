@@ -1,4 +1,49 @@
 {
+  "121": {
+    "6": {
+      "meta": {
+        "vendorId": 121,
+        "productId": 6,
+        "path": "IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/XHC1@14/XHC1@14000000/HS14@14600000/USB2.0 Hub             @14600000/AppleUSB20Hub@14600000/AppleUSB20HubPort@14640000/USB2.0 Hub             @14640000/AppleUSB20Hub@14640000/AppleUSB20HubPort@14642000/Generic   USB  Joystick  @14642000/IOUSBHostInterface@0/AppleUserUSBHostHIDDevice",
+        "serialNumber": "",
+        "manufacturer": "DragonRise Inc.  ",
+        "product": "Generic   USB  Joystick  ",
+        "release": 263,
+        "interface": 0,
+        "usagePage": 1,
+        "usage": 4
+      },
+      "map": {
+        "leftFlipper": {
+          "pos": 0,
+          "value": 0,
+          "idle": 127,
+          "updatedAt": 1619387577120,
+          "pressed": false
+        },
+        "rightFlipper": {
+          "pos": 0,
+          "value": 255,
+          "idle": 127,
+          "updatedAt": 1619387587080,
+          "pressed": false
+        }
+      },
+      "ignoreBits": [
+        2
+      ],
+      "idle": [
+        127,
+        127,
+        0,
+        127,
+        127,
+        15,
+        0,
+        192
+      ]
+    }
+  },
   "273": {
     "5143": {
       "meta": {
