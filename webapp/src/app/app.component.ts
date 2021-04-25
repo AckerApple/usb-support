@@ -32,6 +32,7 @@ export class AppComponent {
   title = 'webapp'
   wsUrl = `ws://${socketHost}:${socketPort}`
   connection: WebSocket
+  reconnectInterval: number
 
   devices: IDeviceMetaState[] = []
   listeners: IDeviceMetaState[] = []
@@ -39,6 +40,7 @@ export class AppComponent {
   nonControllers: IDeviceMeta[] = []
   savedControllers: ControllerConfigs = {}
   savedController: DeviceProductLayout // One controller being reviewed
+
 
   debug: DebugData = {
     state: 'initializing',
@@ -71,13 +73,26 @@ export class AppComponent {
   }
 
   connect() {
+    if (this.reconnectInterval) {
+      clearInterval(this.reconnectInterval)
+      delete this.reconnectInterval
+    }
+
     this.connection = new WebSocket(this.wsUrl)
     this.connection.onopen = () => {
       this.log('web socket handshake successful')
       this.fetchUsbDevices()
       this.fetchSavedControllers()
       this.debug.state = 'socket opened'
+
+      this.connection.onclose = () => {
+        this.reconnectInterval = setInterval(() => {
+          this.log({message: 'attempting ws reconnect...'})
+          this.connect()
+        }, 3000)
+      }
     }
+
 
     this.connection.onerror = (ev: Event): any => {
       this.error(
@@ -100,7 +115,6 @@ export class AppComponent {
         this.error(err, 'client message failed');
         (this.debug.socket as any).error = err
       }
-
 
       try {
         this.handleMessage(data)

@@ -435,12 +435,22 @@ class AppComponent {
         }
     }
     connect() {
+        if (this.reconnectInterval) {
+            clearInterval(this.reconnectInterval);
+            delete this.reconnectInterval;
+        }
         this.connection = new WebSocket(this.wsUrl);
         this.connection.onopen = () => {
             this.log('web socket handshake successful');
             this.fetchUsbDevices();
             this.fetchSavedControllers();
             this.debug.state = 'socket opened';
+            this.connection.onclose = () => {
+                this.reconnectInterval = setInterval(() => {
+                    this.log({ message: 'attempting ws reconnect...' });
+                    this.connect();
+                }, 3000);
+            };
         };
         this.connection.onerror = (ev) => {
             this.error(ev, { message: `Socket error` });
@@ -747,8 +757,8 @@ AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵdefineCompo
         _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](26, AppComponent_ng_container_26_Template, 3, 3, "ng-container", 8);
         _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵpipe"](27, "keyvalue");
         _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
-        _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](28, AppComponent_div_28_Template, 12, 4, "div", 10);
         _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
+        _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](28, AppComponent_div_28_Template, 12, 4, "div", 10);
         _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](29, "div", 11);
         _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](30, "h3");
         _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtext"](31);

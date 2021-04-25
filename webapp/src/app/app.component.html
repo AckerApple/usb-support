@@ -86,14 +86,14 @@
         </div>
       </ng-container>
     </div>
+  </div>
 
-    <div class="flex1 border border-radius-10" *ngIf="savedController">
-      <h3>Saved Controller: {{ savedController.meta.product || savedController.meta.productId + ':' + item.value.meta.vendorId }}</h3>
-      <p>Details of past connected and saved controllers</p>
-      <textarea class="code" wrap="off" (change)="stringUpdateSavedController(savedController,$event.target.value)">{{savedController | json}}</textarea>
-      <button (click)="saveControllers()">save</button>
-      <button (click)="confirmDeleteController(savedController)">delete</button>
-    </div>
+  <div class="flex1 border border-radius-10" *ngIf="savedController">
+    <h3>Saved Controller: {{ savedController.meta.product || savedController.meta.productId + ':' + item.value.meta.vendorId }}</h3>
+    <p>Details of past connected and saved controllers</p>
+    <textarea class="code" wrap="off" (change)="stringUpdateSavedController(savedController,$event.target.value)">{{savedController | json}}</textarea>
+    <button (click)="saveControllers()">save</button>
+    <button (click)="confirmDeleteController(savedController)">delete</button>
   </div>
 
   <div class="flex1 flex-wrap border border-radius-10">
