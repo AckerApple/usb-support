@@ -1,7 +1,7 @@
 import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from '../shared/typings'
 import { SocketMessageType } from "../shared/enums"
 import * as controllers from '../controllers.json'
-import { HandlerClass } from "./Handler.class"
+import { HandlerClass } from "../shared/Handler.class"
 import { ack } from 'ack-x/js/ack'
 import * as WebSocket from 'ws'
 import { scope } from './server.start'

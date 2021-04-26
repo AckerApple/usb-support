@@ -1,7 +1,8 @@
-import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from '../shared/typings'
-import { getGameControllerByMeta, listDevices } from './index.utils'
-import { SocketMessageType } from '../shared/enums'
-import { GameController } from './GameController'
+import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from './typings'
+import { listDevices } from '../server/index.utils'
+import { getGameControllerByMeta } from '../shared/index'
+import { SocketMessageType } from './enums'
+import { GameController } from '../server/GameController'
 import { cleanseDeviceEvent, devicesMatch, eventsMatch, getControlConfigByDevice, isDeviceEventsSame } from '../index.shared'
 import { Subject, Subscription } from 'rxjs'
 
