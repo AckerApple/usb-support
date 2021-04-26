@@ -1,4 +1,4 @@
-import { IButtonState, IDeviceMeta } from '../shared/typings';
+import { IButtonState, IDeviceMeta } from './typings';
 import { Subject } from 'rxjs';
 export declare class GameControlEvents {
     lastData: number[];

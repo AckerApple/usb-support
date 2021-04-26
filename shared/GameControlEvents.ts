@@ -1,4 +1,4 @@
-import { IButtonState, IDeviceMeta } from '../shared/typings';
+import { IButtonState, IDeviceMeta } from './typings';
 // import { EventEmitter } from 'events';
 import { Subject } from 'rxjs';
 

@@ -15,7 +15,8 @@
     "start:webapp": "ack-reload --dir ./webapp/dist/webapp --host 0.0.0.0 --port 4200",
     "start:webapp:ng": "cd webapp && npm run start",
     "start:webapp:ssl": "cd webapp && npm run start:ssl",
-    "build": "npm run build:dist && cd webapp && npm run build",
+    "build": "npm run build:dist && npm run build:webapp",
+    "build:webapp": "cd webapp && npm run build",
     "build:dist": "tsc",
     "save": "npm run build && git add . && git commit -m \"update\" && git push"
   },

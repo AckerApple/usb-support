@@ -37,10 +37,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 exports.ControllerHandler = exports.getControlHander = exports.HandlerClass = void 0;
-var index_utils_1 = require("../server/index.utils");
-var index_1 = require("../shared/index");
+var index_1 = require("./index");
 var enums_1 = require("./enums");
-var index_shared_1 = require("../index.shared");
+var index_utils_1 = require("./index.utils");
+var index_utils_2 = require("./index.utils");
+var usb_hid_1 = require("./usb-hid");
 var rxjs_1 = require("rxjs");
 var HandlerClass = /** @class */ (function () {
     function HandlerClass(controllerConfigs, listeners) {
@@ -52,10 +53,10 @@ var HandlerClass = /** @class */ (function () {
         this.deviceListenActive = new rxjs_1.Subject();
         this.subs = new rxjs_1.Subscription();
         this.controlSubs = [];
-        this.listDevices = index_utils_1.listDevices;
+        this.listDevices = usb_hid_1.listDevices;
     }
     HandlerClass.prototype.getControllerHandler = function (device, gameController) {
-        var config = index_shared_1.getControlConfigByDevice(this.controllerConfigs, device);
+        var config = index_utils_2.getControlConfigByDevice(this.controllerConfigs, device);
         return new ControllerHandler(config, gameController);
     };
     HandlerClass.prototype.destroy = function () {
@@ -89,19 +90,19 @@ var HandlerClass = /** @class */ (function () {
     };
     HandlerClass.prototype.unsubscribeDevice = function (device) {
         var _this = this;
-        var gameController = this.listeners.find(function (gc) { return index_shared_1.devicesMatch(gc.meta, device); });
+        var gameController = this.listeners.find(function (gc) { return index_utils_1.devicesMatch(gc.meta, device); });
         if (!gameController) {
             return;
         }
         this.listeners.find(function (gc, index) {
-            if (index_shared_1.devicesMatch(gc.meta, device)) {
+            if (index_utils_1.devicesMatch(gc.meta, device)) {
                 _this.listeners.splice(index, 1);
                 return true;
             }
         });
         gameController.close();
         this.controlSubs = this.controlSubs.filter(function (item) {
-            if (index_shared_1.devicesMatch(item.control.meta, device)) {
+            if (index_utils_1.devicesMatch(item.control.meta, device)) {
                 item.sub.unsubscribe();
                 return false;
             }
@@ -113,7 +114,7 @@ var HandlerClass = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var gameController;
             return __generator(this, function (_a) {
-                gameController = this.listeners.find(function (gc) { return index_shared_1.devicesMatch(gc.meta, device); });
+                gameController = this.listeners.find(function (gc) { return index_utils_1.devicesMatch(gc.meta, device); });
                 if (!gameController) {
                     gameController = index_1.getGameControllerByMeta(device);
                     this.listeners.push(gameController);
@@ -133,7 +134,7 @@ var HandlerClass = /** @class */ (function () {
     };
     HandlerClass.prototype.isControlSubscribed = function (controller) {
         // usbListeners
-        return this.controlSubs.find(function (item) { return index_shared_1.devicesMatch(item.control.meta, controller.meta); });
+        return this.controlSubs.find(function (item) { return index_utils_1.devicesMatch(item.control.meta, controller.meta); });
     };
     HandlerClass.prototype.handleMessage = function (request) {
         var _this = this;
@@ -168,8 +169,8 @@ var ControllerHandler = /** @class */ (function () {
         this.control.listen();
         var deviceSub = this.control.change.subscribe(function (event) {
             if (_this.config) {
-                event = index_shared_1.cleanseDeviceEvent(_this.config, event);
-                if (_this.lastEvent && index_shared_1.eventsMatch(event, _this.lastEvent)) {
+                event = index_utils_1.cleanseDeviceEvent(_this.config, event);
+                if (_this.lastEvent && index_utils_1.eventsMatch(event, _this.lastEvent)) {
                     return; // no real change. Perhaps ignored pins
                 }
                 _this.lastEvent = event;

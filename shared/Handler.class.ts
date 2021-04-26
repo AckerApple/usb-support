@@ -1,9 +1,10 @@
 import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from './typings'
-import { listDevices } from '../server/index.utils'
-import { getGameControllerByMeta } from '../shared/index'
+import { getGameControllerByMeta } from './index'
 import { SocketMessageType } from './enums'
-import { GameController } from '../server/GameController'
-import { cleanseDeviceEvent, devicesMatch, eventsMatch, getControlConfigByDevice, isDeviceEventsSame } from '../index.shared'
+import { GameController } from './GameController'
+import { cleanseDeviceEvent, devicesMatch, eventsMatch } from './index.utils'
+import { getControlConfigByDevice } from './index.utils'
+import { listDevices } from './usb-hid'
 import { Subject, Subscription } from 'rxjs'
 
 export class HandlerClass {

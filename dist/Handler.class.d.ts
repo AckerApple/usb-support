@@ -1,6 +1,6 @@
 import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from './typings';
-import { listDevices } from '../server/index.utils';
-import { GameController } from '../server/GameController';
+import { GameController } from './GameController';
+import { listDevices } from './usb-hid';
 import { Subject, Subscription } from 'rxjs';
 export declare class HandlerClass {
     controllerConfigs?: ControllerConfigs;

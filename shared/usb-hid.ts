@@ -1,7 +1,6 @@
 import * as HID from 'node-hid';
-import { IDeviceMeta } from "../shared/typings";
-import { isDeviceController } from '../index.shared';
-import { GameController } from "./GameController";
+import { IDeviceMeta } from "./typings";
+import { isDeviceController } from "./index.utils";
 
 export function listDevices(): IDeviceMeta[] {
   return HID.devices().sort((a, b) => a.vendorId - b.vendorId + a.productId - b.productId);
