@@ -1,6 +1,7 @@
 "use strict";
+/** Files in here must be browser safe */
 exports.__esModule = true;
-exports.isDeviceController = exports.devicesMatch = exports.cleanseDeviceEvent = exports.eventsMatch = exports.isDeviceEventsSame = exports.savedControllerToConfigs = exports.getControlConfigByDevice = void 0;
+exports.getDeviceLabel = exports.isDeviceController = exports.devicesMatch = exports.cleanseDeviceEvent = exports.eventsMatch = exports.isDeviceEventsSame = exports.savedControllerToConfigs = exports.getControlConfigByDevice = void 0;
 function getControlConfigByDevice(configs, device) {
     var vendorId = String(device.vendorId);
     var productId = String(device.productId);
@@ -50,3 +51,13 @@ function isDeviceController(device) {
         || device.product.toLowerCase().indexOf("joystick") >= 0;
 }
 exports.isDeviceController = isDeviceController;
+function getDeviceLabel(device) {
+    var _a;
+    var stringRef = ((_a = device.product) === null || _a === void 0 ? void 0 : _a.trim()) || '';
+    if (device.manufacturer) {
+        stringRef += ' by ' + device.manufacturer;
+    }
+    return stringRef;
+}
+exports.getDeviceLabel = getDeviceLabel;
+//# sourceMappingURL=index.utils.js.map

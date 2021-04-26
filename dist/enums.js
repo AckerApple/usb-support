@@ -16,3 +16,4 @@ var SocketMessageType;
     SocketMessageType["DEVICES"] = "devices";
     SocketMessageType["ERROR"] = "error";
 })(SocketMessageType = exports.SocketMessageType || (exports.SocketMessageType = {}));
+//# sourceMappingURL=enums.js.map

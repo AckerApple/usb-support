@@ -1,20 +1,22 @@
-import { IDeviceMetaState } from './app.utils'
-import { ButtonsMap, IButtonState } from '../../../shared/typings'
+import { ButtonsMap, DeviceProductLayout, IButtonState } from './typings'
 
+export default decodeDeviceMetaState
 
-export default function decodeDeviceMetaState(metaState: IDeviceMetaState): string[] {
+export function decodeDeviceMetaState(
+  metaState: DeviceProductLayout, event: number[]
+): string[] {
   const pressedButtons = []
 
-  if (!metaState.map || !metaState.lastEvent) {
+  if (!metaState.map || !event) {
     return pressedButtons
   }
 
-  const changedMap = getButtonMapByEvent(metaState.map, metaState.lastEvent)
+  const changedMap = getButtonMapByEvent(metaState.map, event)
 
   return Object.keys(changedMap).filter((buttonName) => {
     const current = changedMap[buttonName]
     const currentPos = current.pos
-    const stateValue: number = metaState.lastEvent[currentPos]
+    const stateValue: number = event[currentPos]
 
     // direct value match
     if (current.value === stateValue) {

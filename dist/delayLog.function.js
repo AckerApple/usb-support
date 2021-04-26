@@ -8,3 +8,4 @@ function delayLog() {
     setTimeout(function () { return console.log.apply(console, args); }, 300);
 }
 exports["default"] = delayLog;
+//# sourceMappingURL=delayLog.function.js.map

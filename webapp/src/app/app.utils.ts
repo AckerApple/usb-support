@@ -31,16 +31,6 @@ export interface DebugData {
   }
 }
 
-export function getDeviceLabel(device: IDeviceMeta) {
-  let stringRef = device.product?.trim() || ''
-
-  if (device.manufacturer) {
-    stringRef += ' by '+ device.manufacturer
-  }
-
-  return stringRef
-}
-
 export function download(filename:string, text: string) {
   var element = document.createElement('a');
   element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(text));

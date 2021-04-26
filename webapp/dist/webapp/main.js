@@ -134,7 +134,7 @@ const environment = {
 /*!********************************!*\
   !*** ../shared/index.utils.ts ***!
   \********************************/
-/*! exports provided: getControlConfigByDevice, savedControllerToConfigs, isDeviceEventsSame, eventsMatch, cleanseDeviceEvent, devicesMatch, isDeviceController */
+/*! exports provided: getControlConfigByDevice, savedControllerToConfigs, isDeviceEventsSame, eventsMatch, cleanseDeviceEvent, devicesMatch, isDeviceController, getDeviceLabel */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -146,6 +146,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cleanseDeviceEvent", function() { return cleanseDeviceEvent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "devicesMatch", function() { return devicesMatch; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDeviceController", function() { return isDeviceController; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDeviceLabel", function() { return getDeviceLabel; });
+/** Files in here must be browser safe */
 function getControlConfigByDevice(configs, device) {
     const vendorId = String(device.vendorId);
     const productId = String(device.productId);
@@ -185,6 +187,14 @@ function isDeviceController(device) {
         || device.product.toLowerCase().indexOf("game") >= 0
         || device.product.toLowerCase().indexOf("joystick") >= 0;
 }
+function getDeviceLabel(device) {
+    var _a;
+    let stringRef = ((_a = device.product) === null || _a === void 0 ? void 0 : _a.trim()) || '';
+    if (device.manufacturer) {
+        stringRef += ' by ' + device.manufacturer;
+    }
+    return stringRef;
+}
 
 
 /***/ }),
@@ -222,13 +232,12 @@ var SocketMessageType;
 /*!******************************!*\
   !*** ./src/app/app.utils.ts ***!
   \******************************/
-/*! exports provided: testController, getDeviceLabel, download, copyText */
+/*! exports provided: testController, download, copyText */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "testController", function() { return testController; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDeviceLabel", function() { return getDeviceLabel; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "download", function() { return download; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "copyText", function() { return copyText; });
 const testController = {
@@ -241,14 +250,6 @@ const testController = {
     product: 'test-product',
     manufacturer: 'test-manu',
 };
-function getDeviceLabel(device) {
-    var _a;
-    let stringRef = ((_a = device.product) === null || _a === void 0 ? void 0 : _a.trim()) || '';
-    if (device.manufacturer) {
-        stringRef += ' by ' + device.manufacturer;
-    }
-    return stringRef;
-}
 function download(filename, text) {
     var element = document.createElement('a');
     element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(text));
@@ -275,6 +276,67 @@ function copyText(text) {
 
 /***/ }),
 
+/***/ "SD2A":
+/*!**********************************************************!*\
+  !*** ../shared/decodeControllerButtonStates.function.ts ***!
+  \**********************************************************/
+/*! exports provided: default, decodeDeviceMetaState */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decodeDeviceMetaState", function() { return decodeDeviceMetaState; });
+/* harmony default export */ __webpack_exports__["default"] = (decodeDeviceMetaState);
+function decodeDeviceMetaState(metaState, event) {
+    const pressedButtons = [];
+    if (!metaState.map || !event) {
+        return pressedButtons;
+    }
+    const changedMap = getButtonMapByEvent(metaState.map, event);
+    return Object.keys(changedMap).filter((buttonName) => {
+        const current = changedMap[buttonName];
+        const currentPos = current.pos;
+        const stateValue = event[currentPos];
+        // direct value match
+        if (current.value === stateValue) {
+            return true;
+        }
+        else {
+            const currentValue = current.value - current.idle;
+            // combined value match
+            const match = Object.keys(changedMap).find((otherBtnName) => {
+                if (otherBtnName === buttonName) {
+                    return false;
+                }
+                const compareMeta = changedMap[otherBtnName];
+                if (compareMeta.pos !== current.pos) {
+                    return false;
+                }
+                const compareValue = compareMeta.value - compareMeta.idle;
+                const testValue = current.idle + compareValue + currentValue; //15 + 16 + 16 === 47
+                if (testValue === stateValue) {
+                    return true;
+                }
+            });
+            if (match) {
+                return true;
+            }
+        }
+        return false;
+    });
+}
+function getButtonMapByEvent(map, currentBits) {
+    return currentBits.reduce((all, current, index) => {
+        Object.keys(map)
+            .filter((buttonName) => map[buttonName].pos === index && map[buttonName].idle !== current)
+            .forEach(buttonName => all[buttonName] = map[buttonName]);
+        return all;
+    }, {});
+}
+
+
+/***/ }),
+
 /***/ "Sy1n":
 /*!**********************************!*\
   !*** ./src/app/app.component.ts ***!
@@ -290,7 +352,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_config_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../shared/config.json */ "/GmE");
 var _shared_config_json__WEBPACK_IMPORTED_MODULE_2___namespace = /*#__PURE__*/__webpack_require__.t(/*! ../../../shared/config.json */ "/GmE", 1);
 /* harmony import */ var _shared_index_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../shared/index.utils */ "FLXE");
-/* harmony import */ var _decodeControllerButtonStates_function__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./decodeControllerButtonStates.function */ "ZGdl");
+/* harmony import */ var _shared_decodeControllerButtonStates_function__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../shared/decodeControllerButtonStates.function */ "SD2A");
 /* harmony import */ var ack_x_js_ack__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ack-x/js/ack */ "4/WS");
 /* harmony import */ var ack_x_js_ack__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(ack_x_js_ack__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _app_utils__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./app.utils */ "R2Xm");
@@ -664,7 +726,7 @@ class AppComponent {
         return this.listeners.find(listener => Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_3__["devicesMatch"])(listener.meta, device));
     }
     processDeviceUpdate(matchedListener) {
-        const pressedKeyNames = Object(_decodeControllerButtonStates_function__WEBPACK_IMPORTED_MODULE_4__["default"])(matchedListener);
+        const pressedKeyNames = Object(_shared_decodeControllerButtonStates_function__WEBPACK_IMPORTED_MODULE_4__["default"])(matchedListener, matchedListener.lastEvent);
         matchedListener.pressed = pressedKeyNames;
         matchedListener.map = matchedListener.map || {};
         if (matchedListener.recording && !pressedKeyNames.length) {
@@ -699,7 +761,7 @@ class AppComponent {
         });
     }
     confirmDeleteController(controller) {
-        if (!confirm(`confirm delete ${Object(_app_utils__WEBPACK_IMPORTED_MODULE_6__["getDeviceLabel"])(controller.meta)}`)) {
+        if (!confirm(`confirm delete ${Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_3__["getDeviceLabel"])(controller.meta)}`)) {
             return;
         }
         const vendorId = String(controller.meta.vendorId);
@@ -749,7 +811,7 @@ class AppComponent {
     }
     listenToDevice(device) {
         console.log('device', device);
-        const stringRef = Object(_app_utils__WEBPACK_IMPORTED_MODULE_6__["getDeviceLabel"])(device);
+        const stringRef = Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_3__["getDeviceLabel"])(device);
         this.log({
             message: `attempting to listen to ${stringRef}`, device
         });
@@ -824,7 +886,7 @@ class AppComponent {
         item.ignoreBits.splice(ignoreIndex, 1);
     }
     downloadController(controller) {
-        const filename = Object(_app_utils__WEBPACK_IMPORTED_MODULE_6__["getDeviceLabel"])(controller.meta) + '.json';
+        const filename = Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_3__["getDeviceLabel"])(controller.meta) + '.json';
         const data = JSON.stringify(controller, null, 2);
         Object(_app_utils__WEBPACK_IMPORTED_MODULE_6__["download"])(filename, data);
     }
@@ -971,66 +1033,6 @@ AppModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdefineInjector
         ]] });
 (function () { (typeof ngJitMode === "undefined" || ngJitMode) && _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵsetNgModuleScope"](AppModule, { declarations: [_app_component__WEBPACK_IMPORTED_MODULE_2__["AppComponent"]], imports: [_angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__["BrowserModule"],
         _app_routing_module__WEBPACK_IMPORTED_MODULE_1__["AppRoutingModule"]] }); })();
-
-
-/***/ }),
-
-/***/ "ZGdl":
-/*!**********************************************************!*\
-  !*** ./src/app/decodeControllerButtonStates.function.ts ***!
-  \**********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return decodeDeviceMetaState; });
-function decodeDeviceMetaState(metaState) {
-    const pressedButtons = [];
-    if (!metaState.map || !metaState.lastEvent) {
-        return pressedButtons;
-    }
-    const changedMap = getButtonMapByEvent(metaState.map, metaState.lastEvent);
-    return Object.keys(changedMap).filter((buttonName) => {
-        const current = changedMap[buttonName];
-        const currentPos = current.pos;
-        const stateValue = metaState.lastEvent[currentPos];
-        // direct value match
-        if (current.value === stateValue) {
-            return true;
-        }
-        else {
-            const currentValue = current.value - current.idle;
-            // combined value match
-            const match = Object.keys(changedMap).find((otherBtnName) => {
-                if (otherBtnName === buttonName) {
-                    return false;
-                }
-                const compareMeta = changedMap[otherBtnName];
-                if (compareMeta.pos !== current.pos) {
-                    return false;
-                }
-                const compareValue = compareMeta.value - compareMeta.idle;
-                const testValue = current.idle + compareValue + currentValue; //15 + 16 + 16 === 47
-                if (testValue === stateValue) {
-                    return true;
-                }
-            });
-            if (match) {
-                return true;
-            }
-        }
-        return false;
-    });
-}
-function getButtonMapByEvent(map, currentBits) {
-    return currentBits.reduce((all, current, index) => {
-        Object.keys(map)
-            .filter((buttonName) => map[buttonName].pos === index && map[buttonName].idle !== current)
-            .forEach(buttonName => all[buttonName] = map[buttonName]);
-        return all;
-    }, {});
-}
 
 
 /***/ }),

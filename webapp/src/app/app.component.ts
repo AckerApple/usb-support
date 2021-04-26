@@ -4,10 +4,10 @@ import { SocketMessageType } from '../../../shared/enums'
 import GameControlEvents from '../../../shared/GameControlEvents'
 import mapController from './mapController.function'
 import { socketPort } from '../../../shared/config.json'
-import { getControlConfigByDevice, eventsMatch, devicesMatch, isDeviceController } from '../../../shared/index.utils'
-import decodeDeviceMetaState from './decodeControllerButtonStates.function'
+import { getDeviceLabel, getControlConfigByDevice, eventsMatch, devicesMatch, isDeviceController } from '../../../shared/index.utils'
+import decodeDeviceMetaState from '../../../shared/decodeControllerButtonStates.function'
 import { ack } from 'ack-x/js/ack'
-import { copyText, DebugData, download, getDeviceLabel, IDeviceMetaState, testController } from './app.utils'
+import { copyText, DebugData, download, IDeviceMetaState, testController } from './app.utils'
 
 const socketHost = window.location.hostname
 
@@ -223,7 +223,7 @@ export class AppComponent {
   }
 
   processDeviceUpdate(matchedListener: IDeviceMetaState) {
-    const pressedKeyNames = decodeDeviceMetaState(matchedListener)
+    const pressedKeyNames = decodeDeviceMetaState(matchedListener, matchedListener.lastEvent)
     matchedListener.pressed = pressedKeyNames
     matchedListener.map = matchedListener.map || {}
 

@@ -2,6 +2,8 @@ import { GameController } from "./GameController";
 import { IDeviceMeta } from "./typings";
 
 export { getControlHander, HandlerClass } from "./Handler.class"
+export { getDeviceLabel } from './index.utils'
+export { decodeDeviceMetaState } from './decodeControllerButtonStates.function'
 
 export async function listenToDeviceByMeta(
   deviceMeta: IDeviceMeta

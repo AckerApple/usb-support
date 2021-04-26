@@ -11,3 +11,4 @@ function listGameDevices() {
     return listDevices().map(function (device, index) { return ({ device: device, index: index }); }).filter(function (item) { return index_utils_1.isDeviceController(item.device); });
 }
 exports.listGameDevices = listGameDevices;
+//# sourceMappingURL=usb-hid.js.map

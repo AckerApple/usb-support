@@ -296,3 +296,4 @@ function whenCallbackChanges(callback, eachArgument) {
         args = arguments;
     };
 }
+//# sourceMappingURL=GameController.js.map

@@ -1,3 +1,5 @@
+/** Files in here must be browser safe */
+
 import { ControllerConfigs, DeviceProductLayout, IDeviceMeta } from "./typings";
 
 export function getControlConfigByDevice(configs: ControllerConfigs, device: IDeviceMeta) {
@@ -63,4 +65,14 @@ export function isDeviceController(device: IDeviceMeta): boolean {
   || device.product.toLowerCase().indexOf("controller") >= 0
   || device.product.toLowerCase().indexOf("game") >= 0
   || device.product.toLowerCase().indexOf("joystick") >= 0;
+}
+
+export function getDeviceLabel(device: IDeviceMeta) {
+  let stringRef = device.product?.trim() || ''
+
+  if (device.manufacturer) {
+    stringRef += ' by '+ device.manufacturer
+  }
+
+  return stringRef
 }
