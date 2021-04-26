@@ -1,7 +1,7 @@
 import { GameController } from "./GameController";
-import { DeviceProductLayout, IDeviceMeta } from "./typings";
+import { IDeviceMeta } from "./typings";
 
-// export { getControlHander, HandlerClass } from "./Handler.class"
+export { getControlHander, HandlerClass } from "./Handler.class"
 
 export async function listenToDeviceByMeta(
   deviceMeta: IDeviceMeta
