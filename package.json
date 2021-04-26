@@ -2,8 +2,7 @@
   "name": "controller-helper",
   "version": "1.0.0",
   "description": "",
-  "main": "/index.ts",
-  "types": "/index.ts",
+  "main": "/dist/index.js",
   "scripts": {
     "postinstall": "cd webapp && npm install",
     "test": "echo \"Error: no test specified\" && exit 1",
