@@ -1,2 +1,2 @@
-export { DeviceHandler, HandlerClass } from "./server/Handler.class"
+export { getControlHander, HandlerClass } from "./server/Handler.class"
 export { listenToDeviceByMeta } from "./server/index.utils"

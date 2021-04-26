@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
 import { DeviceProductLayout, ControllerConfigs, WssMessage, IDeviceMeta } from '../../../shared/typings'
 import { SocketMessageType } from '../../../shared/enums'
-import GameControlEvents from './GameControlEvents'
+import GameControlEvents from '../../../server/GameControlEvents'
 import mapController from './mapController.function'
 import { socketPort } from '../../../shared/config.json'
 import { getControlConfigByDevice, eventsMatch, devicesMatch, isDeviceController } from '../../../index.shared'
@@ -61,14 +61,15 @@ export class AppComponent {
   }
 
   connect() {
-    if (this.reconnectInterval) {
-      clearInterval(this.reconnectInterval)
-      delete this.reconnectInterval
-    }
-
     this.connection = new WebSocket(this.wsUrl)
     this.connection.onopen = () => {
       this.log('web socket handshake successful')
+
+      if (this.reconnectInterval) {
+        clearInterval(this.reconnectInterval)
+        delete this.reconnectInterval
+      }
+
       this.fetchUsbDevices()
       this.fetchSavedControllers()
       this.debug.state = 'socket opened'
@@ -153,7 +154,7 @@ export class AppComponent {
         break
 
       case SocketMessageType.DEVICEEVENT_CHANGE:
-        this.onDeviceEventChange(data.data.event.data, data.data.device)
+        this.onDeviceEventChange(data.data.event, data.data.device)
         break
 
       case SocketMessageType.ERROR:
@@ -334,6 +335,15 @@ export class AppComponent {
 
     let type: SocketMessageType = SocketMessageType.LISTENTODEVICE
 
+    const savedControllers =  Object.values(this.savedControllers).reduce((all, current) => [...all,...Object.values(current)], [])
+    const savedController = savedControllers.find(
+      xSaved => devicesMatch(device, xSaved.meta)
+    )
+
+    if (savedController) {
+      this.savedController = savedController
+    }
+
     const deviceMatch = this.listeners.find(xDevice => devicesMatch(device, xDevice.meta))
     if(deviceMatch){
       type = SocketMessageType.UNSUBSCRIBEDEVICE
@@ -345,16 +355,9 @@ export class AppComponent {
       this.log({
         message: `Unsubscribed from ${stringRef}`
       })
-    }
 
-    console.log('current', this.savedControllers)
-    const savedControllers =  Object.values(this.savedControllers).reduce((all, current) => [...all,...Object.values(current)], [])
-    const savedController = savedControllers.find(
-      xSaved => devicesMatch(device, xSaved.meta)
-    )
-
-    if (savedController) {
-      this.savedController = savedController
+      this.wssSend(type, device)
+      return
     }
 
     this.log({

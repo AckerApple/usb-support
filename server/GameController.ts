@@ -1,6 +1,6 @@
 import * as HID from 'node-hid';
 import { Subject, Subscription } from 'rxjs';
-import GameControlEvents from '../webapp/src/app/GameControlEvents';
+import GameControlEvents from './GameControlEvents';
 
 export interface IDevice {
   readSync: () => number[];

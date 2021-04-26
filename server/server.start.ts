@@ -52,7 +52,7 @@ export function startSocketServer() {
   function messageHandler(
     ws: typeof WebSocket.Server, handlerClass: WsHandler
   ): (message: any) => void {
-    // const handlerClass = new WsHandler(ws, handlerClass, scope.usbListeners)
+    // handlerClass = new WsHandler(ws, controlConfigs, scope.usbListeners)
 
     return function messageHandler(message) {
       try {

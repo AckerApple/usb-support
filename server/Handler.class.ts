@@ -1,5 +1,5 @@
 import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from '../shared/typings'
-import { listenToDeviceByMeta, listDevices } from './index.utils'
+import { getGameControllerByMeta, listDevices } from './index.utils'
 import { SocketMessageType } from '../shared/enums'
 import { GameController } from './GameController'
 import { cleanseDeviceEvent, devicesMatch, eventsMatch, getControlConfigByDevice, isDeviceEventsSame } from '../index.shared'
@@ -21,13 +21,14 @@ export class HandlerClass {
     public listeners?: GameController[],
   ) {}
 
-  getDeviceHandler(device: IDeviceMeta) {
+  getControllerHandler(device: IDeviceMeta, gameController: GameController) {
     const config: DeviceProductLayout = getControlConfigByDevice(this.controllerConfigs, device)
-    return new DeviceHandler(config)
+    return new ControllerHandler(config, gameController)
   }
 
   destroy() {
     this.subs.unsubscribe()
+    this.listeners.forEach(control => control.close())
   }
 
   paramDeviceSub(control: GameController) {
@@ -35,7 +36,24 @@ export class HandlerClass {
       return
     }
 
-    const deviceSub = this.getDeviceHandler(control.meta).subscribeToController(control)
+    this.subscribeToController(control)
+
+    if (control.idle) {
+      this.deviceEvent.next({device: control.meta, event: control.idle})
+    }
+  }
+
+  subscribeToController(control: GameController): Subscription {
+    const device = control.meta
+    // const config: DeviceProductLayout = getControlConfigByDevice(this.controllerConfigs, device)
+    const controlHandler = this.getControllerHandler(device, control)
+    const deviceSub = controlHandler.subscribe()
+
+    this.subs.add(
+      controlHandler.deviceEvent.subscribe(event =>
+        this.deviceEvent.next({device, event})
+      )
+    )
 
     this.controlSubs.push({
       control, sub: deviceSub
@@ -43,35 +61,42 @@ export class HandlerClass {
 
     this.subs.add(deviceSub)
 
-    if (control.idle) {
-      this.deviceEvent.next({device: control.meta, event: control.idle})
-    }
+    return deviceSub
   }
 
   unsubscribeDevice(device: IDeviceMeta) {
     const gameController = this.listeners.find(gc => devicesMatch(gc.meta, device))
-    if (gameController) {
-      this.listeners = this.listeners.filter(
-        gc => !devicesMatch(gc.meta, device)
-      )
-      gameController.close()
-      this.controlSubs = this.controlSubs.filter(item => {
-        if (item.control.meta === device) {
-          item.sub.unsubscribe()
-          return false
-        }
 
-        return true
-      })
-      this.deviceUnsubscribed.next(device)
+    if (!gameController) {
+      return
     }
+
+    this.listeners.find(
+      (gc, index) => {
+        if (devicesMatch(gc.meta, device)) {
+          this.listeners.splice(index, 1)
+          return true
+        }
+      }
+    )
+
+    gameController.close()
+    this.controlSubs = this.controlSubs.filter(item => {
+      if (devicesMatch(item.control.meta, device)) {
+        item.sub.unsubscribe()
+        return false
+      }
+
+      return true
+    })
+    this.deviceUnsubscribed.next(device)
   }
 
   async listenToDevice(device: IDeviceMeta): Promise<void> {
     // are we already listening?
     let gameController = this.listeners.find(gc => devicesMatch(gc.meta, device))
     if (!gameController) {
-      gameController = await listenToDeviceByMeta(device)
+      gameController = getGameControllerByMeta(device)
       this.listeners.push( gameController )
     }
 
@@ -109,15 +134,25 @@ export class HandlerClass {
   }
 }
 
-export class DeviceHandler {
+export function getControlHander(config: DeviceProductLayout) {
+  const control = getGameControllerByMeta(config.meta)
+  return new ControllerHandler(config, control)
+}
+
+export class ControllerHandler {
   lastEvent: number[]
   deviceEvent: Subject<number[]> = new Subject()
   subs: Subscription = new Subscription()
 
-  constructor(public config: DeviceProductLayout) {}
+  constructor(
+    public config: DeviceProductLayout,
+    public control: GameController
+  ) {}
 
-  subscribeToController(control: GameController): Subscription {
-    const deviceSub = control.change.subscribe(event => {
+  subscribe(): Subscription {
+    this.control.listen()
+
+    const deviceSub = this.control.change.subscribe((event: number[]) => {
       if (this.config) {
         event = cleanseDeviceEvent(this.config, event)
         if (this.lastEvent && eventsMatch(event, this.lastEvent)) {

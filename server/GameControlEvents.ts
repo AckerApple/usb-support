@@ -1,4 +1,4 @@
-import { IButtonState, IDeviceMeta } from '../../../shared/typings';
+import { IButtonState, IDeviceMeta } from '../shared/typings';
 // import { EventEmitter } from 'events';
 import { Subject } from 'rxjs';
 
@@ -38,7 +38,12 @@ export class GameControlEvents {
       }
     }
 
-    this.change.next(data)
+    const length = data.length
+    const bits: number[] = []
+    while(bits.length < length){
+      bits.push(data[bits.length])
+    }
+    this.change.next(bits)
   }
 
   // returns which bit buckets do not match

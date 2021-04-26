@@ -1,6 +1,6 @@
 import delayLog from "../../../shared/delayLog.function";
 import { Subject, Subscription } from "rxjs";
-import { GameControlEvents } from "./GameControlEvents";
+import { GameControlEvents } from "../../../server/GameControlEvents";
 
 export default function mapController(
   gameController: GameControlEvents

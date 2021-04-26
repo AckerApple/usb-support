@@ -541,13 +541,13 @@ class AppComponent {
         }
     }
     connect() {
-        if (this.reconnectInterval) {
-            clearInterval(this.reconnectInterval);
-            delete this.reconnectInterval;
-        }
         this.connection = new WebSocket(this.wsUrl);
         this.connection.onopen = () => {
             this.log('web socket handshake successful');
+            if (this.reconnectInterval) {
+                clearInterval(this.reconnectInterval);
+                delete this.reconnectInterval;
+            }
             this.fetchUsbDevices();
             this.fetchSavedControllers();
             this.debug.state = 'socket opened';
@@ -615,7 +615,7 @@ class AppComponent {
                 this.onListeners(data.data);
                 break;
             case _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].DEVICEEVENT_CHANGE:
-                this.onDeviceEventChange(data.data.event.data, data.data.device);
+                this.onDeviceEventChange(data.data.event, data.data.device);
                 break;
             case _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].ERROR:
                 this.error(data.data);
@@ -754,6 +754,11 @@ class AppComponent {
             message: `attempting to listen to ${stringRef}`, device
         });
         let type = _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].LISTENTODEVICE;
+        const savedControllers = Object.values(this.savedControllers).reduce((all, current) => [...all, ...Object.values(current)], []);
+        const savedController = savedControllers.find(xSaved => Object(_index_shared__WEBPACK_IMPORTED_MODULE_3__["devicesMatch"])(device, xSaved.meta));
+        if (savedController) {
+            this.savedController = savedController;
+        }
         const deviceMatch = this.listeners.find(xDevice => Object(_index_shared__WEBPACK_IMPORTED_MODULE_3__["devicesMatch"])(device, xDevice.meta));
         if (deviceMatch) {
             type = _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].UNSUBSCRIBEDEVICE;
@@ -764,12 +769,8 @@ class AppComponent {
             this.log({
                 message: `Unsubscribed from ${stringRef}`
             });
-        }
-        console.log('current', this.savedControllers);
-        const savedControllers = Object.values(this.savedControllers).reduce((all, current) => [...all, ...Object.values(current)], []);
-        const savedController = savedControllers.find(xSaved => Object(_index_shared__WEBPACK_IMPORTED_MODULE_3__["devicesMatch"])(device, xSaved.meta));
-        if (savedController) {
-            this.savedController = savedController;
+            this.wssSend(type, device);
+            return;
         }
         this.log({
             message: `requesting web socket to listen to ${stringRef}`
