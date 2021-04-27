@@ -1,5 +1,5 @@
 import { socketPort } from '../shared/config.json'
-import { GameController } from './GameController'
+import { GameController } from '../shared/GameController'
 import { WssMessage } from '../shared/typings'
 import WsHandler, { controlConfigs } from './WsHandler.class'
 import * as WebSocket from 'ws'

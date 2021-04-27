@@ -52,7 +52,7 @@ export function cleanseDeviceEvent(
 function cleanseDeviceEventPos(
   device: DeviceProductLayout, number: number, index: number
 ){
-  return device.ignoreBits.includes(index) ? 0 : number
+  return device.ignoreBits?.includes(index) ? 0 : number
 }
 
 export function devicesMatch(device: IDeviceMeta, lDevice: IDeviceMeta): boolean {

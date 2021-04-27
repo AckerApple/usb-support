@@ -37,7 +37,8 @@ function cleanseDeviceEvent(device, event) {
 }
 exports.cleanseDeviceEvent = cleanseDeviceEvent;
 function cleanseDeviceEventPos(device, number, index) {
-    return device.ignoreBits.includes(index) ? 0 : number;
+    var _a;
+    return ((_a = device.ignoreBits) === null || _a === void 0 ? void 0 : _a.includes(index)) ? 0 : number;
 }
 function devicesMatch(device, lDevice) {
     return device === lDevice || device.productId === lDevice.productId && device.vendorId === lDevice.vendorId;

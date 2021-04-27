@@ -124,7 +124,7 @@ export class GameController extends GameControlEvents {
     try {
       return new HID.HID(this.meta.path);
     } catch (err) {
-      console.warn("Could not connect by path", err.message);
+      // console.warn("Could not connect by path", err.message);
       return this.tryVendorProductConnection()
     }
   }

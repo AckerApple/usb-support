@@ -7,8 +7,8 @@ import * as WebSocket from 'ws'
 import { scope } from './server.start'
 import * as path from 'path'
 import * as fs from 'fs'
-import { savedControllerToConfigs } from '../index.shared'
-import { GameController } from './GameController'
+import { savedControllerToConfigs } from '../shared/index.utils'
+import { GameController } from '../shared/GameController'
 
 export const controlConfigs: ControllerConfigs = controllers
 
