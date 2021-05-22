@@ -168,8 +168,8 @@ var GameController = /** @class */ (function (_super) {
         catch (err) {
             err.message = err.message + ("(vId:" + this.meta.vendorId + " pId:" + this.meta.productId + " " + this.meta.product + ")");
             err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
-            console.error("Could not connect to device", err);
-            console.warn(err.tip);
+            // console.error("Could not connect to device", err);
+            // console.warn(err.tip);
             throw err;
         }
     };

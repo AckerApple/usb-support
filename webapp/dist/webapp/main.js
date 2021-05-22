@@ -775,16 +775,21 @@ class AppComponent {
         const vendorId = controller.meta.vendorId;
         const products = this.savedControllers[vendorId] = this.savedControllers[vendorId] || {};
         const productId = controller.meta.productId;
-        const saveData = Object.assign({}, controller);
-        delete saveData.lastEvent;
-        delete saveData.subscribed;
-        delete saveData.recording;
-        delete saveData.pressed;
-        products[productId] = saveData;
+        const saveData = controllerSaveFormat(controller);
+        products[productId] = saveData; // update local info
         this.saveControllers();
     }
     saveControllers() {
-        this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].SAVECONTROLLERS, this.savedControllers);
+        const controllers = {};
+        Object.keys(this.savedControllers).forEach(vendorId => {
+            const products = this.savedControllers[vendorId];
+            controllers[vendorId] = controllers[vendorId] || {};
+            Object.keys(products).forEach(productId => {
+                const product = this.savedControllers[vendorId][productId];
+                controllers[vendorId][productId] = controllerSaveFormat(product);
+            });
+        });
+        this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].SAVECONTROLLERS, controllers);
     }
     addTestController() {
         this.controllers.push(_app_utils__WEBPACK_IMPORTED_MODULE_6__["testController"]);
@@ -1002,6 +1007,14 @@ AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_7__["ɵɵdefineCompo
         _angular_core__WEBPACK_IMPORTED_MODULE_7__["ɵɵadvance"](5);
         _angular_core__WEBPACK_IMPORTED_MODULE_7__["ɵɵtextInterpolate1"]("      ", _angular_core__WEBPACK_IMPORTED_MODULE_7__["ɵɵpipeBind1"](47, 23, ctx.debug), "\n    ");
     } }, directives: [_angular_common__WEBPACK_IMPORTED_MODULE_8__["NgForOf"], _angular_common__WEBPACK_IMPORTED_MODULE_8__["NgIf"], _angular_router__WEBPACK_IMPORTED_MODULE_9__["RouterOutlet"]], pipes: [_angular_common__WEBPACK_IMPORTED_MODULE_8__["JsonPipe"], _angular_common__WEBPACK_IMPORTED_MODULE_8__["KeyValuePipe"], _angular_common__WEBPACK_IMPORTED_MODULE_8__["SlicePipe"]], styles: ["\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IiIsImZpbGUiOiJhcHAuY29tcG9uZW50LnNjc3MifQ== */", "textarea.code[_ngcontent-%COMP%] {\n    height:500px;width:100%;\n    min-width:300px;\n  }"] });
+function controllerSaveFormat(controller) {
+    const saveData = Object.assign({}, controller);
+    delete saveData.lastEvent;
+    delete saveData.subscribed;
+    delete saveData.recording;
+    delete saveData.pressed;
+    return saveData;
+}
 
 
 /***/ }),

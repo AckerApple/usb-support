@@ -281,19 +281,26 @@ export class AppComponent {
     const products = this.savedControllers[vendorId] = this.savedControllers[vendorId] || {}
     const productId = controller.meta.productId
 
-    const saveData = { ...controller }
-    delete saveData.lastEvent
-    delete saveData.subscribed
-    delete saveData.recording
-    delete saveData.pressed
-
-    products[productId] = saveData
+    const saveData = controllerSaveFormat(controller)
+    products[productId] = saveData // update local info
 
     this.saveControllers()
   }
 
   saveControllers() {
-    this.wssSend(SocketMessageType.SAVECONTROLLERS, this.savedControllers)
+    const controllers: ControllerConfigs = {}
+
+    Object.keys(this.savedControllers).forEach(vendorId => {
+      const products = this.savedControllers[vendorId]
+      controllers[vendorId] = controllers[vendorId] || {}
+
+      Object.keys(products).forEach(productId => {
+        const product = this.savedControllers[vendorId][productId]
+        controllers[vendorId][productId] = controllerSaveFormat(product)
+      });
+    });
+
+    this.wssSend(SocketMessageType.SAVECONTROLLERS, controllers)
   }
 
   addTestController() {
@@ -434,4 +441,13 @@ export class AppComponent {
   copyController(controller: DeviceProductLayout) {
     copyText(JSON.stringify(controller, null, 2))
   }
+}
+
+function controllerSaveFormat(controller: IDeviceMetaState) {
+  const saveData = { ...controller }
+  delete saveData.lastEvent
+  delete saveData.subscribed
+  delete saveData.recording
+  delete saveData.pressed
+  return saveData
 }

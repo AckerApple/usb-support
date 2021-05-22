@@ -27,7 +27,14 @@
           "idle": 127,
           "updatedAt": 1619387587080,
           "pressed": false
-        }
+        },
+        "start": {
+          "pos": 1,
+          "value": 255,
+          "idle": 127,
+          "updatedAt": 1619543684583,
+          "pressed": false
+         }
       },
       "ignoreBits": [
         2
