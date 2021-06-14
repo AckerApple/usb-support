@@ -7,9 +7,8 @@
 <div style="display:flex;flex-wrap:wrap" class="child-pad-xs child-margin-xs">
   <div class="flex2 border border-radius-10">
     <h3>Listeners: {{listeners.length}}</h3>
-    <textarea class="code" wrap="off" [style.height.em]="25 * listeners.length">
-      {{listeners | json}}
-    </textarea>
+    <textarea class="code" wrap="off" [style.height.em]="25 * listeners.length" disabled
+    >{{listeners | json}}</textarea>
     <div *ngFor="let item of listeners" class="flex-wrap flex-valign-center">
       <button (click)="saveController(item)"
       >save</button>
@@ -93,7 +92,9 @@
   <div class="flex1 border border-radius-10" *ngIf="savedController">
     <h3>Saved Controller: {{ savedController.meta.product || savedController.meta.productId + ':' + item.value.meta.vendorId }}</h3>
     <p>Details of past connected and saved controllers</p>
-    <textarea class="code" wrap="off" (change)="stringUpdateSavedController(savedController,$event.target.value)">{{savedController | json}}</textarea>
+    <textarea class="code" wrap="off"
+      (change)="stringUpdateSavedController(savedController, $event.target.value)"
+    >{{savedController | json}}</textarea>
     <button (click)="saveControllers()">save</button>
     <button (click)="downloadController(savedController)">download</button>
     <button (click)="copyController(savedController)">copy</button>
@@ -102,24 +103,24 @@
 
   <div class="flex1 flex-wrap border border-radius-10">
     <h3>Devices: {{devices.length}}</h3>
-    <textarea class="code" wrap="off">{{devices | json}}</textarea>
+    <textarea class="code" wrap="off" disabled>{{devices | json}}</textarea>
   </div>
 
   <div class="flex1 flex-wrap border border-radius-10">
     <h3>Controllers: {{controllers.length}}</h3>
-    <textarea class="code" wrap="off">{{controllers | json}}</textarea>
+    <textarea class="code" wrap="off" disabled>{{controllers | json}}</textarea>
   </div>
 
   <div *ngIf="debug.lastLogs.error" class="flex2 border border-radius-10 bg-warning">
     <h3>Recent error occurred</h3>
     <p *ngIf="debug.lastLogs.error.message">{{debug.lastLogs.error.message}}</p>
-    <textarea class="code">{{debug.lastLogs.error | json}}</textarea>
+    <textarea class="code" disabled>{{debug.lastLogs.error | json}}</textarea>
   </div>
 
   <!--  DEBUG PANEL -->
   <div class="flex2 border border-radius-10">
     <h3>debug</h3>
-    <textarea class="code" wrap="off">
+    <textarea class="code" wrap="off" disabled>
       {{debug | json}}
     </textarea>
   </div>
