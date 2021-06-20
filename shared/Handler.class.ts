@@ -105,6 +105,17 @@ export class HandlerClass {
     this.listenToController(gameController)
   }
 
+  async writeToDevice(device: IDeviceMeta, command: any[]): Promise<void> {
+    // are we already listening?
+    let gameController = this.listeners.find(gc => devicesMatch(gc.meta, device))
+    if (!gameController) {
+      gameController = getGameControllerByMeta(device)
+      this.listeners.push( gameController )
+    }
+
+    gameController.write(command)
+  }
+
   listenToController(gameController: GameController) {
     // are we already subscribed?
     if (this.isControlSubscribed(gameController)) {
@@ -124,6 +135,10 @@ export class HandlerClass {
     switch (request.type) {
       case SocketMessageType.LISTENTODEVICE:
         this.listenToDevice(request.data).catch(err => this.error.next(err))
+        break
+
+        case SocketMessageType.WRITETODEVICE:
+        this.writeToDevice(request.data.device, request.data.command).catch(err => this.error.next(err))
         break
 
       case SocketMessageType.UNSUBSCRIBEDEVICE:

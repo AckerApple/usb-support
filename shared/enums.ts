@@ -2,6 +2,7 @@ export enum SocketMessageType {
   // client side
   UNSUBSCRIBEDEVICE = 'unsubscribeDevice',
   LISTENTODEVICE = 'listenToDevice',
+  WRITETODEVICE = 'writeToDevice',
   REFRESH = 'refresh',
   GETSAVEDCONTROLLERS = 'getSavedControllers',
   SAVECONTROLLERS = 'save_controllers',

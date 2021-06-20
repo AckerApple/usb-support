@@ -124,6 +124,20 @@ var HandlerClass = /** @class */ (function () {
             });
         });
     };
+    HandlerClass.prototype.writeToDevice = function (device, command) {
+        return __awaiter(this, void 0, void 0, function () {
+            var gameController;
+            return __generator(this, function (_a) {
+                gameController = this.listeners.find(function (gc) { return index_utils_1.devicesMatch(gc.meta, device); });
+                if (!gameController) {
+                    gameController = index_1.getGameControllerByMeta(device);
+                    this.listeners.push(gameController);
+                }
+                gameController.write(command);
+                return [2 /*return*/];
+            });
+        });
+    };
     HandlerClass.prototype.listenToController = function (gameController) {
         // are we already subscribed?
         if (this.isControlSubscribed(gameController)) {
@@ -141,6 +155,9 @@ var HandlerClass = /** @class */ (function () {
         switch (request.type) {
             case enums_1.SocketMessageType.LISTENTODEVICE:
                 this.listenToDevice(request.data)["catch"](function (err) { return _this.error.next(err); });
+                break;
+            case enums_1.SocketMessageType.WRITETODEVICE:
+                this.writeToDevice(request.data.device, request.data.command)["catch"](function (err) { return _this.error.next(err); });
                 break;
             case enums_1.SocketMessageType.UNSUBSCRIBEDEVICE:
                 this.unsubscribeDevice(request.data);

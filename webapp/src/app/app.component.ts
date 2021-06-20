@@ -4,6 +4,7 @@ import { SocketMessageType } from '../../../shared/enums'
 import GameControlEvents from '../../../shared/GameControlEvents'
 import mapController from './mapController.function'
 import { socketPort } from '../../../shared/config.json'
+import { relayOn, relayOff } from './relayPositions'
 import { getDeviceLabel, getControlConfigByDevice, eventsMatch, devicesMatch, isDeviceController } from '../../../shared/index.utils'
 import decodeDeviceMetaState from '../../../shared/decodeControllerButtonStates.function'
 import { ack } from 'ack-x/js/ack'
@@ -21,6 +22,10 @@ export class AppComponent {
   wsUrl = `ws://${socketHost}:${socketPort}`
   connection: WebSocket
   reconnectInterval: number
+
+  command = '0x00, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00'
+  relayOn = relayOn
+  relayOff = relayOff
 
   devices: IDeviceMetaState[] = []
   listeners: IDeviceMetaState[] = []
@@ -100,7 +105,7 @@ export class AppComponent {
         data = JSON.parse(e.data)
         this.debug.lastWssData = data
       } catch (err) {
-        console.log('e.data', e)
+        // console.log('e.data', e)
         this.error(err, 'client message failed');
         (this.debug.socket as any).error = err
       }
@@ -332,15 +337,43 @@ export class AppComponent {
     this.wssSend(SocketMessageType.GETSAVEDCONTROLLERS)
   }
 
+  writeToDevice(device: IDeviceMetaState, command: number[]) {
+    this.wssSend(SocketMessageType.WRITETODEVICE, {device: device.meta, command})
+  }
+
+  writeToDeviceByString(device: IDeviceMetaState, command: string[]) {
+    const sendCommand = command.map(x => parseInt(Number(x.trim()) as any, 10) || 0) as any
+    this.writeToDevice(device, sendCommand)
+  }
+
+  toggleDeviceConnection(device: IDeviceMeta): boolean {
+    const deviceMatch = this.listeners.find(xDevice => devicesMatch(device, xDevice.meta))
+    if(deviceMatch){
+      delete deviceMatch.subscribed
+      const controller = this.deviceToController(deviceMatch.meta);
+
+      (controller as any).subscribed = false
+
+      console.log('controller --- ', controller);
+      const stringRef = getDeviceLabel(device)
+
+      this.log({
+        message: `Unsubscribed from ${stringRef}`
+      })
+
+      this.wssSend(SocketMessageType.UNSUBSCRIBEDEVICE, device)
+      return false
+    }
+    return true
+  }
+
   listenToDevice(device: IDeviceMeta) {
-    console.log('device', device)
+    // console.log('device', device)
     const stringRef = getDeviceLabel(device)
 
     this.log({
       message: `attempting to listen to ${stringRef}`, device
     })
-
-    let type: SocketMessageType = SocketMessageType.LISTENTODEVICE
 
     const savedControllers =  Object.values(this.savedControllers).reduce((all, current) => [...all,...Object.values(current)], [])
     const savedController = savedControllers.find(
@@ -351,19 +384,9 @@ export class AppComponent {
       this.savedController = savedController
     }
 
-    const deviceMatch = this.listeners.find(xDevice => devicesMatch(device, xDevice.meta))
-    if(deviceMatch){
-      type = SocketMessageType.UNSUBSCRIBEDEVICE
-      delete deviceMatch.subscribed
-      const controller = this.deviceToController(deviceMatch.meta);
-      (controller as any).subscribed = false
-      console.log('controller --- ', controller);
-
-      this.log({
-        message: `Unsubscribed from ${stringRef}`
-      })
-
-      this.wssSend(type, device)
+    // already connected so disconnect?
+    const isConnected = this.toggleDeviceConnection(device)
+    if (!isConnected) {
       return
     }
 
@@ -371,7 +394,7 @@ export class AppComponent {
       message: `requesting web socket to listen to ${stringRef}`
     })
 
-    this.wssSend(type, device)
+    this.wssSend(SocketMessageType.LISTENTODEVICE, device)
 
     if (device === testController) {
       this.handleMessage({
@@ -396,7 +419,7 @@ export class AppComponent {
     }
     const readable = ack.error(error).toObject()
     this.debug.lastLogs.error = {...readable, ...error, ...extra.reduce((all, one) => ({...all, ...one}), {})}
-    console.log('lastLogs.error updated')
+    // console.log('lastLogs.error updated')
     console.error({error, ...extra})
   }
 
@@ -450,4 +473,16 @@ function controllerSaveFormat(controller: IDeviceMetaState) {
   delete saveData.recording
   delete saveData.pressed
   return saveData
+}
+
+function hexEncode(string){
+  var hex, i;
+
+  var result = "";
+  for (i=0; i < string.length; i++) {
+      hex = string.charCodeAt(i).toString(16);
+      result += ("000"+hex).slice(-4);
+  }
+
+  return result
 }

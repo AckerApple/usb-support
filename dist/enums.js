@@ -6,6 +6,7 @@ var SocketMessageType;
     // client side
     SocketMessageType["UNSUBSCRIBEDEVICE"] = "unsubscribeDevice";
     SocketMessageType["LISTENTODEVICE"] = "listenToDevice";
+    SocketMessageType["WRITETODEVICE"] = "writeToDevice";
     SocketMessageType["REFRESH"] = "refresh";
     SocketMessageType["GETSAVEDCONTROLLERS"] = "getSavedControllers";
     SocketMessageType["SAVECONTROLLERS"] = "save_controllers";

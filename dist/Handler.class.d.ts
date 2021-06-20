@@ -25,6 +25,7 @@ export declare class HandlerClass {
     subscribeToController(control: GameController): Subscription;
     unsubscribeDevice(device: IDeviceMeta): void;
     listenToDevice(device: IDeviceMeta): Promise<void>;
+    writeToDevice(device: IDeviceMeta, command: any[]): Promise<void>;
     listenToController(gameController: GameController): void;
     isControlSubscribed(controller: GameController): {
         control: GameController;

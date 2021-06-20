@@ -1,6 +1,7 @@
 import { Subject } from 'rxjs';
 import GameControlEvents from './GameControlEvents';
 export interface IDevice {
+    sendFeatureReport: (command: any[]) => any;
     readSync: () => number[];
     read: (callback: (err: any, value: number[]) => any) => void;
     listenerCount: () => number;
@@ -26,6 +27,7 @@ export declare class GameController extends GameControlEvents {
     promiseNextIdle(): Promise<GameController>;
     onNextIdle(callback: (err: Error, value: GameController) => any): any;
     isCurrentState(state: number[]): boolean;
+    paramDeviceConnect(): any;
     listen(): this;
     tryConnection(): any;
     tryVendorProductConnection(): any;
@@ -42,4 +44,5 @@ export declare class GameController extends GameControlEvents {
         max: number;
     }[];
     axisDataDiscoverer(data: any): void;
+    write(command: any[]): void;
 }

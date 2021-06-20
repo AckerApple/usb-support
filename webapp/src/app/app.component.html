@@ -9,31 +9,53 @@
     <h3>Listeners: {{listeners.length}}</h3>
     <textarea class="code" wrap="off" [style.height.em]="25 * listeners.length" disabled
     >{{listeners | json}}</textarea>
-    <div *ngFor="let item of listeners" class="flex-wrap flex-valign-center">
-      <button (click)="saveController(item)"
+    <div *ngFor="let device of listeners" class="flex-wrap flex-valign-center">
+      <button (click)="saveController(device)"
       >save</button>
-      <button *ngIf="item.lastEvent" (click)="item.idle = item.lastEvent"
+      <button *ngIf="device.lastEvent" (click)="device.idle = device.lastEvent"
       >capture idle</button>
-      <button *ngIf="item.idle" [class.bg-warning]="item.recording" (click)="toggleDeviceRecord(item)"
+      <button *ngIf="device.idle" [class.bg-warning]="device.recording" (click)="toggleDeviceRecord(device)"
       >record</button>
 
       <!-- visual bit map -->
       <div class="flex">
-        <div *ngFor="let value of item.lastEvent;let index=index"
+        <div *ngFor="let value of device.lastEvent;let index=index"
           class="border radius-5 cursor-pointer" style="margin:.3em;padding:.5em;"
-          [class.bg-danger] = "item.ignoreBits?.includes(index)"
-          (click) = "toggleIgnoreDeviceBit(item, index)"
+          [class.bg-danger] = "device.ignoreBits?.includes(index)"
+          (click) = "toggleIgnoreDeviceBit(device, index)"
         >{{'000' + value | slice : -3}}</div>
       </div>
 
       <!-- visual button map -->
       <div style="display:flex;flex-wrap:wrap">
         <div>
-          <ng-container *ngFor="let button of item.map | keyvalue">
+          <ng-container *ngFor="let button of device.map | keyvalue">
             <button type="button" [disabled]="button.value.pressed">{{button.key}}</button>
           </ng-container>
         </div>
       </div>
+
+      <div>
+        <h3>writeToDevice</h3>
+        <div class="child-pad child-margin">
+          <input type="text" [value]="command" placeholder="comma separated"
+            (change)="command = $event.target.value"
+          />
+          <button type="button" (click)="writeToDeviceByString(device, command.split(','))">send</button>
+        </div>
+      </div>
+
+      <div *ngIf="device.meta.product.toLowerCase().search('relay') >= 0" class="child-margin flex-wrap flex-center">
+        <div>
+          <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOn[0])">all on</a>
+          <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOff[0])">all off</a>
+        </div>
+        <div *ngFor="let pos of [1,2,3,4,5,6,7,8]">
+          <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOn[pos])">{{ pos + 1}} on</a>
+          <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOff[pos])">{{ pos + 1}} off</a>
+        </div>
+      </div>
+
     </div>
   </div>
 

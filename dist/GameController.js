@@ -127,19 +127,21 @@ var GameController = /** @class */ (function (_super) {
         }
         return this.lastData.find(function (data, index) { return state.length <= index || state[index] !== data; }) ? false : true;
     };
+    GameController.prototype.paramDeviceConnect = function () {
+        if (this.device) {
+            return this.device;
+        }
+        if (this.meta) {
+            return this.device = this.tryConnection();
+        }
+        throw new Error("GameController.meta has not been set. Need vendorId and productId");
+    };
     GameController.prototype.listen = function () {
         var _this = this;
         if (this.listener) {
             return this; // already listening
         }
-        if (!this.device) {
-            if (this.meta) {
-                this.device = this.tryConnection();
-            }
-            else {
-                throw new Error("GameController.meta has not been set. Need vendorId and productId");
-            }
-        }
+        this.paramDeviceConnect();
         var onNewData = function (data) {
             _this.onNewData(data);
         };
@@ -154,7 +156,10 @@ var GameController = /** @class */ (function (_super) {
     };
     GameController.prototype.tryConnection = function () {
         try {
-            return new HID.HID(this.meta.path);
+            console.log('connecting by path', this.meta.path);
+            var device = new HID.HID(this.meta.path);
+            console.log('connected to device by path', this.meta.path);
+            return device;
         }
         catch (err) {
             // console.warn("Could not connect by path", err.message);
@@ -163,7 +168,10 @@ var GameController = /** @class */ (function (_super) {
     };
     GameController.prototype.tryVendorProductConnection = function () {
         try {
-            return new HID.HID(this.meta.vendorId, this.meta.productId);
+            console.log('connecting by ids', this.meta.vendorId, this.meta.productId);
+            var device = new HID.HID(this.meta.vendorId, this.meta.productId);
+            console.log('connected to by ids', this.meta.path);
+            return device;
         }
         catch (err) {
             err.message = err.message + ("(vId:" + this.meta.vendorId + " pId:" + this.meta.productId + " " + this.meta.product + ")");
@@ -267,6 +275,17 @@ var GameController = /** @class */ (function (_super) {
                 max: pinValue
             });
         });
+    };
+    GameController.prototype.write = function (command) {
+        console.log('this.meta', this.meta);
+        var device = this.paramDeviceConnect();
+        try {
+            console.log('sending command', command);
+            device.sendFeatureReport(command);
+        }
+        catch (err) {
+            console.error('could not write to device', err);
+        }
     };
     return GameController;
 }(GameControlEvents_1["default"]));
