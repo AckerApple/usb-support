@@ -1,6 +1,6 @@
 {
   "name": "controller-helper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "/dist/index.js",
   "typings": "/dist/index.d.ts",
@@ -20,7 +20,8 @@
     "build": "npm run build:dist && npm run build:webapp",
     "build:webapp": "cd webapp && npm run build",
     "build:dist": "tsc",
-    "save": "npm run build && git add . && git commit -m \"update\" && git push"
+    "patch:version": "npm --no-git-tag-version version patch",
+    "save": "npm run build && npm run patch:version && git add . && git commit -m \"update\" && git push"
   },
   "keywords": [],
   "author": "",
