@@ -27,3 +27,29 @@ To control usb devices without using `sudo`:
 
 
 https://unix.stackexchange.com/questions/85379/dev-hidraw-read-permissions/85459
+
+## Example
+
+```
+import { InputControlMonitor } from 'controller-helper'
+import controllerConfig from './controlConfig.json'
+
+export class AppInputs {
+  controlMonitor: InputControlMonitor = new InputControlMonitor()
+
+  constructor() {
+    this.controlMonitor.$change.subscribe(pressed => this.onPress(pressed))
+  }
+
+  monitorControlByConfig(controller: DeviceProductLayout) {
+    // clear all previous listeners
+    if (this.controlMonitor.controllers.length) {
+      this.controlMonitor.reset()
+    }
+
+    this.controlMonitor.monitorByConfig(controllerConfig)
+
+    return controller
+  }
+}
+```

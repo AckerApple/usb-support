@@ -433,9 +433,9 @@ function AppComponent_div_7_div_18_div_6_Template(rf, ctx) { if (rf & 1) {
 } if (rf & 2) {
     const pos_r27 = ctx.$implicit;
     _angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵadvance"](2);
-    _angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵtextInterpolate1"]("", pos_r27 + 1, " on");
+    _angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵtextInterpolate1"]("", pos_r27, " on");
     _angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵadvance"](2);
-    _angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵtextInterpolate1"]("", pos_r27 + 1, " off");
+    _angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵtextInterpolate1"]("", pos_r27, " off");
 } }
 const _c0 = function () { return [1, 2, 3, 4, 5, 6, 7, 8]; };
 function AppComponent_div_7_div_18_Template(rf, ctx) { if (rf & 1) {

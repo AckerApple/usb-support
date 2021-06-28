@@ -51,8 +51,8 @@
           <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOff[0])">all off</a>
         </div>
         <div *ngFor="let pos of [1,2,3,4,5,6,7,8]">
-          <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOn[pos])">{{ pos + 1}} on</a>
-          <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOff[pos])">{{ pos + 1}} off</a>
+          <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOn[pos])">{{ pos }} on</a>
+          <a class="border radius-5 pad-xs margin-xs" (click)="writeToDevice(device, relayOff[pos])">{{ pos }} off</a>
         </div>
       </div>
 
