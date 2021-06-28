@@ -9,30 +9,35 @@
     <h3>Listeners: {{listeners.length}}</h3>
     <textarea class="code" wrap="off" [style.height.em]="25 * listeners.length" disabled
     >{{listeners | json}}</textarea>
-    <div *ngFor="let device of listeners" class="flex-wrap flex-valign-center">
-      <button (click)="saveController(device)"
-      >save</button>
-      <button *ngIf="device.lastEvent" (click)="device.idle = device.lastEvent"
-      >capture idle</button>
-      <button *ngIf="device.idle" [class.bg-warning]="device.recording" (click)="toggleDeviceRecord(device)"
-      >record</button>
+    <div *ngFor="let device of listeners">
+      <div class="flex-wrap flex-valign-center child-margin">
+        <button (click)="saveController(device)"
+        >save</button>
+
+        <button *ngIf="device.lastEvent" (click)="device.idle = device.lastEvent"
+        >capture idle</button>
+
+        <button *ngIf="device.idle" [class.bg-warning]="device.recording" (click)="toggleDeviceRecord(device)"
+        >record</button>
+
+        <button (click)="device.map = {}"
+        >reset</button>
+      </div>
 
       <!-- visual bit map -->
-      <div class="flex">
+      <div class="flex-wrap flex-valign-center child-margin-xxs child-pad-xs">
         <div *ngFor="let value of device.lastEvent;let index=index"
-          class="border radius-5 cursor-pointer" style="margin:.3em;padding:.5em;"
+          class="border radius-5 cursor-pointer"
           [class.bg-danger] = "device.ignoreBits?.includes(index)"
           (click) = "toggleIgnoreDeviceBit(device, index)"
         >{{'000' + value | slice : -3}}</div>
       </div>
 
       <!-- visual button map -->
-      <div style="display:flex;flex-wrap:wrap">
-        <div>
+      <div class="flex-wrap child-pad-xs child-margin-xs">
           <ng-container *ngFor="let button of device.map | keyvalue">
             <button type="button" [disabled]="button.value.pressed">{{button.key}}</button>
           </ng-container>
-        </div>
       </div>
 
       <div>
