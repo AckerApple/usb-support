@@ -1,11 +1,10 @@
 {
   "name": "controller-helper",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "/dist/index.js",
   "typings": "/dist/index.d.ts",
   "scripts": {
-    "postinstall": "cd webapp && npm install",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm-run-all --parallel start:webapp start:server",
     "watch": "npm-run-all --parallel start:webapp:ng start:server:watch",
