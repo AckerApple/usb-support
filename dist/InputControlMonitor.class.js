@@ -29,7 +29,6 @@ var InputControlMonitor = /** @class */ (function () {
     InputControlMonitor.prototype.monitorControl = function (controller) {
         var _this = this;
         this.subs.add(controller.deviceEvent.subscribe(function (deviceEvent) {
-            // console.log('inputs pressed')
             _this.lastPressed = index_1.decodeDeviceMetaState(controller.config, deviceEvent);
             _this.$change.next(_this.lastPressed);
         }));

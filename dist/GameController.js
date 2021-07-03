@@ -156,9 +156,9 @@ var GameController = /** @class */ (function (_super) {
     };
     GameController.prototype.tryConnection = function () {
         try {
-            console.log('connecting by path', this.meta.path);
+            // console.log('connecting by path', this.meta.path)
             var device = new HID.HID(this.meta.path);
-            console.log('connected to device by path', this.meta.path);
+            // console.log('connected to device by path', this.meta.path)
             return device;
         }
         catch (err) {
@@ -168,9 +168,9 @@ var GameController = /** @class */ (function (_super) {
     };
     GameController.prototype.tryVendorProductConnection = function () {
         try {
-            console.log('connecting by ids', this.meta.vendorId, this.meta.productId);
+            // console.log('connecting by ids', this.meta.vendorId, this.meta.productId)
             var device = new HID.HID(this.meta.vendorId, this.meta.productId);
-            console.log('connected to by ids', this.meta.path);
+            // console.log('connected to by ids', this.meta.path)
             return device;
         }
         catch (err) {

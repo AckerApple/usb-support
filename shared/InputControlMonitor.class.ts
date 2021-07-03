@@ -34,7 +34,6 @@ export class InputControlMonitor {
   monitorControl(controller: ControllerHandler) {
     this.subs.add(
       controller.deviceEvent.subscribe(deviceEvent => {
-        // console.log('inputs pressed')
         this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
         this.$change.next(this.lastPressed)
       })

@@ -128,9 +128,9 @@ export class GameController extends GameControlEvents {
 
   tryConnection() {
     try {
-      console.log('connecting by path', this.meta.path)
+      // console.log('connecting by path', this.meta.path)
       const device = new HID.HID(this.meta.path);
-      console.log('connected to device by path', this.meta.path)
+      // console.log('connected to device by path', this.meta.path)
       return device
     } catch (err) {
       // console.warn("Could not connect by path", err.message);
@@ -140,9 +140,9 @@ export class GameController extends GameControlEvents {
 
   tryVendorProductConnection() {
     try {
-      console.log('connecting by ids', this.meta.vendorId, this.meta.productId)
+      // console.log('connecting by ids', this.meta.vendorId, this.meta.productId)
       const device = new HID.HID(this.meta.vendorId, this.meta.productId)
-      console.log('connected to by ids', this.meta.path)
+      // console.log('connected to by ids', this.meta.path)
       return device
     } catch (err) {
       err.message = err.message + `(vId:${this.meta.vendorId} pId:${this.meta.productId} ${this.meta.product})`
