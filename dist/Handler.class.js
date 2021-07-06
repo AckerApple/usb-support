@@ -183,7 +183,7 @@ var ControllerHandler = /** @class */ (function () {
     }
     ControllerHandler.prototype.subscribe = function () {
         var _this = this;
-        this.control.listen();
+        this.control.listen(); // new HID.HID call
         var deviceSub = this.control.change.subscribe(function (event) {
             if (_this.config) {
                 event = index_utils_1.cleanseDeviceEvent(_this.config, event);

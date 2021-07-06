@@ -167,7 +167,7 @@ export class ControllerHandler {
   ) {}
 
   subscribe(): Subscription {
-    this.control.listen()
+    this.control.listen() // new HID.HID call
 
     const deviceSub = this.control.change.subscribe((event: number[]) => {
       if (this.config) {
