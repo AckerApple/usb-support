@@ -298,34 +298,40 @@ function decodeDeviceMetaState(metaState, event) {
     return Object.keys(changedMap).filter((buttonName) => {
         const current = changedMap[buttonName];
         const currentPos = current.pos;
-        const stateValue = event[currentPos];
+        const seekValue = event[currentPos];
         // direct value match
-        if (current.value === stateValue) {
+        if (current.value === seekValue) {
             return true;
         }
-        else {
-            const currentValue = current.value - current.idle;
-            // combined value match
-            const match = Object.keys(changedMap).find((otherBtnName) => {
-                if (otherBtnName === buttonName) {
-                    return false;
-                }
-                const compareMeta = changedMap[otherBtnName];
-                if (compareMeta.pos !== current.pos) {
-                    return false;
-                }
-                const compareValue = compareMeta.value - compareMeta.idle;
-                const testValue = current.idle + compareValue + currentValue; //15 + 16 + 16 === 47
-                if (testValue === stateValue) {
-                    return true;
-                }
-            });
-            if (match) {
-                return true;
+        // items on the same pos
+        const alikes = Object.keys(changedMap)
+            .filter(otherBtnName => {
+            if (otherBtnName === buttonName) {
+                return false;
             }
+            if (changedMap[otherBtnName].pos !== current.pos) {
+                return false;
+            }
+            return true;
+        });
+        // combined value match
+        const match = findButtonCombo(alikes, current, { changedMap, seekValue });
+        if (match) {
+            return true;
         }
         return false;
     });
+}
+function findButtonCombo(alikes, current, { changedMap, seekValue, alreadytried = [] }) {
+    if (!alikes.length) {
+        return false;
+    }
+    const x = [current.value];
+    alikes.forEach(name => {
+        x.push(changedMap[name].value - current.idle);
+    });
+    const results = sumSets(x);
+    return results.sums.includes(seekValue);
 }
 function getButtonMapByEvent(map, currentBits) {
     return currentBits.reduce((all, current, index) => {
@@ -334,6 +340,27 @@ function getButtonMapByEvent(map, currentBits) {
             .forEach(buttonName => all[buttonName] = map[buttonName]);
         return all;
     }, {});
+}
+function sumSets(x) {
+    var sums = [];
+    var sets = [];
+    function SubSets(read, queued) {
+        if (read.length == 4 || (read.length <= 4 && queued.length == 0)) {
+            if (read.length > 0) {
+                var total = read.reduce(function (a, b) { return a + b; }, 0);
+                if (sums.indexOf(total) == -1) {
+                    sums.push(total);
+                    sets.push(read.slice().sort());
+                }
+            }
+        }
+        else {
+            SubSets(read.concat(queued[0]), queued.slice(1));
+            SubSets(read, queued.slice(1));
+        }
+    }
+    SubSets([], x);
+    return { sums, sets };
 }
 
 

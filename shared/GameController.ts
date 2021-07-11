@@ -27,6 +27,7 @@ export class GameController extends GameControlEvents {
   $data: Subject<number[]> = new Subject()
   listener: (data: number[]) => any
   private subs = new Subscription()
+  $error = new Subject()
 
   // device can be asked for state versus always reporting its state
   allowsInterfacing() {
@@ -121,7 +122,9 @@ export class GameController extends GameControlEvents {
       callback(data)
     };
 
-    this.device.addListener("data", this.listener);
+    if (this.device) {
+      this.device.addListener("data", this.listener);
+    }
 
     return this;
   }
@@ -149,7 +152,8 @@ export class GameController extends GameControlEvents {
       err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
       // console.error("Could not connect to device", err);
       // console.warn(err.tip);
-      throw err;
+      // throw err;
+      this.$error.next(err)
     }
   }
 
@@ -157,8 +161,10 @@ export class GameController extends GameControlEvents {
     // this.device.off("data")
     // this.device.removeAllListeners();
     if (this.listener) {
-      this.device.removeListener("data", this.listener);
-      this.device.close()
+      if (this.device) {
+        this.device.removeListener("data", this.listener);
+        this.device.close()
+      }
       delete this.listener;
     }
     this.subs.unsubscribe();

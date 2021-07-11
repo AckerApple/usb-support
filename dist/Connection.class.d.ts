@@ -10,5 +10,5 @@ export declare class Connection {
     private restartProcessId;
     constructor();
     close(): void;
-    connect(): void;
+    connect(): Connection;
 }

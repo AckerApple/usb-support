@@ -25,9 +25,9 @@ var Connection = /** @class */ (function () {
     };
     Connection.prototype.connect = function () {
         var _this = this;
-        console.log('check to restart', this.retryInterval);
+        // console.log('check to restart', this.retryInterval)
         if (this.restartProcessId) {
-            return;
+            return this;
         }
         this.restartProcessId = setInterval(function () {
             try {
@@ -37,6 +37,7 @@ var Connection = /** @class */ (function () {
                 // console.error('error reconnecting to usb control', err.message)
             }
         }, this.retryInterval);
+        return this;
     };
     return Connection;
 }());

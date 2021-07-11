@@ -66,6 +66,7 @@ var GameController = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.$data = new rxjs_1.Subject();
         _this.subs = new rxjs_1.Subscription();
+        _this.$error = new rxjs_1.Subject();
         _this.tempAxisMemoryArray = [];
         return _this;
     }
@@ -151,7 +152,9 @@ var GameController = /** @class */ (function (_super) {
             _this.$data.next(data);
             callback(data);
         };
-        this.device.addListener("data", this.listener);
+        if (this.device) {
+            this.device.addListener("data", this.listener);
+        }
         return this;
     };
     GameController.prototype.tryConnection = function () {
@@ -178,15 +181,18 @@ var GameController = /** @class */ (function (_super) {
             err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
             // console.error("Could not connect to device", err);
             // console.warn(err.tip);
-            throw err;
+            // throw err;
+            this.$error.next(err);
         }
     };
     GameController.prototype.close = function () {
         // this.device.off("data")
         // this.device.removeAllListeners();
         if (this.listener) {
-            this.device.removeListener("data", this.listener);
-            this.device.close();
+            if (this.device) {
+                this.device.removeListener("data", this.listener);
+                this.device.close();
+            }
             delete this.listener;
         }
         this.subs.unsubscribe();

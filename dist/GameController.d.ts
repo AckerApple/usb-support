@@ -22,6 +22,7 @@ export declare class GameController extends GameControlEvents {
     $data: Subject<number[]>;
     listener: (data: number[]) => any;
     private subs;
+    $error: Subject<unknown>;
     allowsInterfacing(): boolean;
     onNextChangeHold(callback: () => any, timeMs?: number): void;
     promiseNextIdle(): Promise<GameController>;

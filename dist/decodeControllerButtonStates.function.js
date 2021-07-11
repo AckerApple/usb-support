@@ -11,36 +11,43 @@ function decodeDeviceMetaState(metaState, event) {
     return Object.keys(changedMap).filter(function (buttonName) {
         var current = changedMap[buttonName];
         var currentPos = current.pos;
-        var stateValue = event[currentPos];
+        var seekValue = event[currentPos];
         // direct value match
-        if (current.value === stateValue) {
+        if (current.value === seekValue) {
             return true;
         }
-        else {
-            var currentValue_1 = current.value - current.idle;
-            // combined value match
-            var match = Object.keys(changedMap).find(function (otherBtnName) {
-                if (otherBtnName === buttonName) {
-                    return false;
-                }
-                var compareMeta = changedMap[otherBtnName];
-                if (compareMeta.pos !== current.pos) {
-                    return false;
-                }
-                var compareValue = compareMeta.value - compareMeta.idle;
-                var testValue = current.idle + compareValue + currentValue_1; //15 + 16 + 16 === 47
-                if (testValue === stateValue) {
-                    return true;
-                }
-            });
-            if (match) {
-                return true;
+        // items on the same pos
+        var alikes = Object.keys(changedMap)
+            .filter(function (otherBtnName) {
+            if (otherBtnName === buttonName) {
+                return false;
             }
+            if (changedMap[otherBtnName].pos !== current.pos) {
+                return false;
+            }
+            return true;
+        });
+        // combined value match
+        var match = findButtonCombo(alikes, current, { changedMap: changedMap, seekValue: seekValue });
+        if (match) {
+            return true;
         }
         return false;
     });
 }
 exports.decodeDeviceMetaState = decodeDeviceMetaState;
+function findButtonCombo(alikes, current, _a) {
+    var changedMap = _a.changedMap, seekValue = _a.seekValue, _b = _a.alreadytried, alreadytried = _b === void 0 ? [] : _b;
+    if (!alikes.length) {
+        return false;
+    }
+    var x = [current.value];
+    alikes.forEach(function (name) {
+        x.push(changedMap[name].value - current.idle);
+    });
+    var results = sumSets(x);
+    return results.sums.includes(seekValue);
+}
 function getButtonMapByEvent(map, currentBits) {
     return currentBits.reduce(function (all, current, index) {
         Object.keys(map)
@@ -50,5 +57,26 @@ function getButtonMapByEvent(map, currentBits) {
             .forEach(function (buttonName) { return all[buttonName] = map[buttonName]; });
         return all;
     }, {});
+}
+function sumSets(x) {
+    var sums = [];
+    var sets = [];
+    function SubSets(read, queued) {
+        if (read.length == 4 || (read.length <= 4 && queued.length == 0)) {
+            if (read.length > 0) {
+                var total = read.reduce(function (a, b) { return a + b; }, 0);
+                if (sums.indexOf(total) == -1) {
+                    sums.push(total);
+                    sets.push(read.slice().sort());
+                }
+            }
+        }
+        else {
+            SubSets(read.concat(queued[0]), queued.slice(1));
+            SubSets(read, queued.slice(1));
+        }
+    }
+    SubSets([], x);
+    return { sums: sums, sets: sets };
 }
 //# sourceMappingURL=decodeControllerButtonStates.function.js.map

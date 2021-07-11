@@ -14,39 +14,32 @@
         "usage": 4
       },
       "map": {
-        "leftFlipper": {
-          "pos": 0,
-          "value": 0,
-          "idle": 127,
-          "updatedAt": 1619387577120,
+        "unknown0": {
+          "pos": 5,
+          "value": 143,
+          "idle": 15,
+          "updatedAt": 1625966469524,
           "pressed": false
         },
-        "rightFlipper": {
-          "pos": 0,
-          "value": 255,
-          "idle": 127,
-          "updatedAt": 1619387587080,
+        "unknown1": {
+          "pos": 5,
+          "value": 79,
+          "idle": 15,
+          "updatedAt": 1625966470091,
           "pressed": false
         },
-        "start": {
-          "pos": 1,
-          "value": 255,
-          "idle": 127,
-          "updatedAt": 1619543684583,
+        "unknown2": {
+          "pos": 5,
+          "value": 47,
+          "idle": 15,
+          "updatedAt": 1625967009451,
           "pressed": false
         },
-        "outhole": {
-          "pos": 1,
-          "value": 0,
-          "idle": 127,
-          "updatedAt": 1619543684583,
-          "pressed": false
-        },
-        "500Point": {
-          "pos": 6,
-          "value": 128,
-          "idle": 0,
-          "updatedAt": 1623628905754,
+        "unknown3": {
+          "pos": 5,
+          "value": 31,
+          "idle": 15,
+          "updatedAt": 1625967010107,
           "pressed": false
         }
       },

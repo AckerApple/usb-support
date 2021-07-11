@@ -31,10 +31,10 @@ export class Connection {
     this.subs.unsubscribe()
   }
 
-  connect() {
-    console.log('check to restart', this.retryInterval)
+  connect(): Connection {
+    // console.log('check to restart', this.retryInterval)
     if (this.restartProcessId) {
-      return
+      return this
     }
 
     this.restartProcessId = setInterval(() => {
@@ -44,5 +44,7 @@ export class Connection {
         // console.error('error reconnecting to usb control', err.message)
       }
     }, this.retryInterval)
+
+    return this
   }
 }

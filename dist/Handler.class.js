@@ -119,6 +119,9 @@ var HandlerClass = /** @class */ (function () {
                     gameController = index_1.getGameControllerByMeta(device);
                     this.listeners.push(gameController);
                 }
+                gameController.$error.subscribe(function (err) {
+                    console.error('controller error', err);
+                });
                 this.listenToController(gameController);
                 return [2 /*return*/];
             });

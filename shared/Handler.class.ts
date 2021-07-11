@@ -102,6 +102,10 @@ export class HandlerClass {
       this.listeners.push( gameController )
     }
 
+    gameController.$error.subscribe(err => {
+      console.error('controller error', err)
+    })
+
     this.listenToController(gameController)
   }
 
