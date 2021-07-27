@@ -31,7 +31,7 @@ https://unix.stackexchange.com/questions/85379/dev-hidraw-read-permissions/85459
 ## Example
 
 ```
-import { InputControlMonitor } from 'controller-helper'
+import { InputControlMonitor } from 'usb-support'
 import controllerConfig from './controlConfig.json'
 
 export class AppInputs {
