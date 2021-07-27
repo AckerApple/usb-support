@@ -3,7 +3,7 @@ var usbDetect = require('usb-detection') // todo: change to import
 import { InputControlMonitor } from "./InputControlMonitor.class"
 import { DeviceProductLayout } from "./typings"
 import { Connection } from "./Connection.class"
-import { getDeviceLabel } from "./index.utils"
+import { devicesMatch, getDeviceLabel } from "./index.utils"
 
 
 export class UsbConnection extends Connection {
@@ -13,21 +13,26 @@ export class UsbConnection extends Connection {
   constructor(public controllerConfig: DeviceProductLayout) {
     super()
 
-    this.startUsbMonitoring()
-  }
-
-  startUsbMonitoring() {
     // anytime its time to connect, lets do the connecting
     this.$connect.subscribe(() =>
       this.usbConnect()
     )
 
+    this.startUsbMonitoring()
+  }
+
+  /** Be informed of USB device changes */
+  startUsbMonitoring() {
     // officially turns on monitoring
     usbDetect.startMonitoring()
 
-    /*usbDetect.on('change', device => {
-      console.info('usb change', getDeviceLabel(device))
-    })*/
+    // Be informed of when device goes down or back up
+    usbDetect.on('change', device => {
+      if (devicesMatch(device, this.controllerConfig.meta)) {
+        // this.$connect.next()
+        this.connect()
+      }
+    })
 
     /*usbDetect.on('error', (err) => {
       console.error('usb error', err)

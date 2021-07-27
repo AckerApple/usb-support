@@ -25,20 +25,25 @@ var UsbConnection = /** @class */ (function (_super) {
         _this.controllerConfig = controllerConfig;
         _this.monitor = new InputControlMonitor_class_1.InputControlMonitor();
         _this.listeners = {};
+        // anytime its time to connect, lets do the connecting
+        _this.$connect.subscribe(function () {
+            return _this.usbConnect();
+        });
         _this.startUsbMonitoring();
         return _this;
     }
+    /** Be informed of USB device changes */
     UsbConnection.prototype.startUsbMonitoring = function () {
         var _this = this;
-        // anytime its time to connect, lets do the connecting
-        this.$connect.subscribe(function () {
-            return _this.usbConnect();
-        });
         // officially turns on monitoring
         usbDetect.startMonitoring();
-        /*usbDetect.on('change', device => {
-          console.info('usb change', getDeviceLabel(device))
-        })*/
+        // Be informed of when device goes down or back up
+        usbDetect.on('change', function (device) {
+            if (index_utils_1.devicesMatch(device, _this.controllerConfig.meta)) {
+                // this.$connect.next()
+                _this.connect();
+            }
+        });
         /*usbDetect.on('error', (err) => {
           console.error('usb error', err)
         })*/
