@@ -2,7 +2,8 @@
 exports.__esModule = true;
 exports.decodeDeviceMetaState = void 0;
 exports["default"] = decodeDeviceMetaState;
-function decodeDeviceMetaState(metaState, event) {
+function decodeDeviceMetaState(metaState, event // 8 bits
+) {
     var pressedButtons = [];
     if (!metaState.map || !event) {
         return pressedButtons;
@@ -12,6 +13,12 @@ function decodeDeviceMetaState(metaState, event) {
         var current = changedMap[buttonName];
         var currentPos = current.pos;
         var seekValue = event[currentPos];
+        // does another matching position have an exact match?
+        var otherHasExact = Object.values(changedMap)
+            .find(function (btnMap) { return btnMap.pos === currentPos && btnMap !== current && btnMap.value === seekValue; });
+        if (otherHasExact) {
+            return false;
+        }
         // direct value match
         if (current.value === seekValue) {
             return true;
@@ -48,7 +55,8 @@ function findButtonCombo(alikes, current, _a) {
     var results = sumSets(x);
     return results.sums.includes(seekValue);
 }
-function getButtonMapByEvent(map, currentBits) {
+function getButtonMapByEvent(map, currentBits // 8
+) {
     return currentBits.reduce(function (all, current, index) {
         Object.keys(map)
             .filter(function (buttonName) {

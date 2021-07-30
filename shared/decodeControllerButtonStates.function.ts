@@ -3,7 +3,8 @@ import { ButtonsMap, DeviceProductLayout, IButtonState } from './typings'
 export default decodeDeviceMetaState
 
 export function decodeDeviceMetaState(
-  metaState: DeviceProductLayout, event: number[]
+  metaState: DeviceProductLayout,
+  event: number[] // 8 bits
 ): string[] {
   const pressedButtons = []
 
@@ -11,12 +12,19 @@ export function decodeDeviceMetaState(
     return pressedButtons
   }
 
-  const changedMap = getButtonMapByEvent(metaState.map, event)
+  const changedMap: ButtonStates = getButtonMapByEvent(metaState.map, event)
 
   return Object.keys(changedMap).filter((buttonName) => {
     const current = changedMap[buttonName]
     const currentPos = current.pos
     const seekValue: number = event[currentPos]
+
+    // does another matching position have an exact match?
+    const otherHasExact = Object.values(changedMap)
+      .find(btnMap => btnMap.pos === currentPos && btnMap !== current && btnMap.value === seekValue)
+    if (otherHasExact) {
+      return false
+    }
 
     // direct value match
     if (current.value === seekValue) {
@@ -71,7 +79,14 @@ function findButtonCombo(
   return results.sums.includes(seekValue)
 }
 
-function getButtonMapByEvent(map: ButtonsMap, currentBits: number[]): {[buttonName: string]: IButtonState} {
+interface ButtonStates {
+  [buttonName: string]: IButtonState
+}
+
+function getButtonMapByEvent(
+  map: ButtonsMap,
+  currentBits: number[] // 8
+): ButtonStates {
   return currentBits.reduce((all, current, index) => {
     Object.keys(map)
       .filter((buttonName) =>

@@ -289,7 +289,8 @@ function copyText(text) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decodeDeviceMetaState", function() { return decodeDeviceMetaState; });
 /* harmony default export */ __webpack_exports__["default"] = (decodeDeviceMetaState);
-function decodeDeviceMetaState(metaState, event) {
+function decodeDeviceMetaState(metaState, event // 8 bits
+) {
     const pressedButtons = [];
     if (!metaState.map || !event) {
         return pressedButtons;
@@ -299,6 +300,12 @@ function decodeDeviceMetaState(metaState, event) {
         const current = changedMap[buttonName];
         const currentPos = current.pos;
         const seekValue = event[currentPos];
+        // does another matching position have an exact match?
+        const otherHasExact = Object.values(changedMap)
+            .find(btnMap => btnMap.pos === currentPos && btnMap !== current && btnMap.value === seekValue);
+        if (otherHasExact) {
+            return false;
+        }
         // direct value match
         if (current.value === seekValue) {
             return true;
@@ -333,7 +340,8 @@ function findButtonCombo(alikes, current, { changedMap, seekValue, alreadytried 
     const results = sumSets(x);
     return results.sums.includes(seekValue);
 }
-function getButtonMapByEvent(map, currentBits) {
+function getButtonMapByEvent(map, currentBits // 8
+) {
     return currentBits.reduce((all, current, index) => {
         Object.keys(map)
             .filter((buttonName) => map[buttonName].pos === index && map[buttonName].idle !== current)
@@ -830,9 +838,8 @@ class AppComponent {
             this.recordDeviceEvent(matchedListener);
         }
         // loop each known button and set its pressed property
-        Object.entries(matchedListener.map).forEach(current => {
-            const key = current[0];
-            current[1].pressed = pressedKeyNames.includes(key);
+        Object.entries(matchedListener.map).forEach(([key, buttonMap]) => {
+            buttonMap.pressed = pressedKeyNames.includes(key);
         });
     }
     recordDeviceEvent(matchedListener) {

@@ -237,9 +237,8 @@ export class AppComponent {
     }
 
     // loop each known button and set its pressed property
-    Object.entries(matchedListener.map).forEach(current => {
-      const key = current[0]
-      current[1].pressed = pressedKeyNames.includes(key)
+    Object.entries(matchedListener.map).forEach(([key, buttonMap]) => {
+      buttonMap.pressed = pressedKeyNames.includes(key)
     })
   }
 
