@@ -1142,27 +1142,40 @@ function getDeviceLabel(device) {
 function sumSets(numsToSum, $sum = (items) => items.reduce((a, b) => a + b, 0)) {
     var sums = []; // every possible sum (typically single number value)
     var sets = []; // each index matches sums (the items in sum)
-    function SubSets(read, // starts with no values
-    queued // starts with all values
+    getCombinations(numsToSum).forEach(read => {
+        const total = $sum(read); // read.reduce($sum as any, startValue) as any
+        sums.push(total); // record result of combing
+        sets.push(read.slice()); // clone read array
+    });
+    /*
+    function SubSets(
+      read: W[], // starts with no values
+      queued: W[] // starts with all values
     ) {
-        if (read.length) {
-            const total = $sum(read); // read.reduce($sum as any, startValue) as any
-            sums.push(total); // record result of combing
-            sets.push(read.slice()); // clone read array
-        }
-        if (read.length > 1) {
-            SubSets(read.slice(1), []);
-        }
-        if (queued.length === 0) {
-            return;
-        }
-        const next = queued[0];
-        const left = queued.slice(1);
-        const newReads = [...read, next];
-        SubSets(newReads, left); // move one over at a time
+      if (read.length) {
+        const total = $sum(read)// read.reduce($sum as any, startValue) as any
+        sums.push(total) // record result of combing
+        sets.push(read.slice()) // clone read array
+      }
+  
+      if (read.length > 1) {
+        SubSets(read.slice(1), [])
+      }
+  
+      if (queued.length === 0) {
+        return
+      }
+  
+      const next = queued[0]
+  
+      const left = queued.slice(1)
+      const newReads = [...read, next]
+      SubSets(newReads, left) // move one over at a time
     }
+  
     // igniter
-    SubSets([], numsToSum);
+    SubSets([], numsToSum)
+    */
     return { sums, sets };
 }
 /** a map of all possible button presses */
@@ -1185,6 +1198,22 @@ function getPressMapByController(controller) {
     }, {});
     output[idle.join(' ')] = [];
     return output;
+}
+function getCombinations(valuesArray) {
+    const combi = [];
+    const slent = Math.pow(2, valuesArray.length);
+    for (var i = 0; i < slent; i++) {
+        const temp = [];
+        for (var j = 0; j < valuesArray.length; j++) {
+            if ((i & Math.pow(2, j))) {
+                temp.push(valuesArray[j]);
+            }
+        }
+        if (temp.length > 0) {
+            combi.push(temp);
+        }
+    }
+    return combi;
 }
 
 

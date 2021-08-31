@@ -22,8 +22,8 @@ describe('index.utils.ts', () => {
       expect(results).toBeDefined()
       expect(results.sums).toBeDefined()
       expect(results.sets).toBeDefined()
-      expect(results.sums.length).toBe(10)
-      expect(results.sets.length).toBe(10)
+      expect(results.sums.length).toBe(15)
+      expect(results.sets.length).toBe(15)
     })
   })
 

@@ -1,12 +1,5 @@
 "use strict";
 /** Files in here must be browser safe */
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 exports.__esModule = true;
 exports.getPressMapByController = exports.sumSets = exports.getDeviceLabel = exports.isDeviceController = exports.devicesMatch = exports.cleanseDeviceEvent = exports.eventsMatch = exports.isDeviceEventsSame = exports.savedControllerToConfigs = exports.getControlConfigByDevice = void 0;
 function getControlConfigByDevice(configs, device) {
@@ -78,27 +71,40 @@ function sumSets(numsToSum, $sum) {
     if ($sum === void 0) { $sum = function (items) { return items.reduce(function (a, b) { return a + b; }, 0); }; }
     var sums = []; // every possible sum (typically single number value)
     var sets = []; // each index matches sums (the items in sum)
-    function SubSets(read, // starts with no values
-    queued // starts with all values
+    getCombinations(numsToSum).forEach(function (read) {
+        var total = $sum(read); // read.reduce($sum as any, startValue) as any
+        sums.push(total); // record result of combing
+        sets.push(read.slice()); // clone read array
+    });
+    /*
+    function SubSets(
+      read: W[], // starts with no values
+      queued: W[] // starts with all values
     ) {
-        if (read.length) {
-            var total = $sum(read); // read.reduce($sum as any, startValue) as any
-            sums.push(total); // record result of combing
-            sets.push(read.slice()); // clone read array
-        }
-        if (read.length > 1) {
-            SubSets(read.slice(1), []);
-        }
-        if (queued.length === 0) {
-            return;
-        }
-        var next = queued[0];
-        var left = queued.slice(1);
-        var newReads = __spreadArrays(read, [next]);
-        SubSets(newReads, left); // move one over at a time
+      if (read.length) {
+        const total = $sum(read)// read.reduce($sum as any, startValue) as any
+        sums.push(total) // record result of combing
+        sets.push(read.slice()) // clone read array
+      }
+  
+      if (read.length > 1) {
+        SubSets(read.slice(1), [])
+      }
+  
+      if (queued.length === 0) {
+        return
+      }
+  
+      const next = queued[0]
+  
+      const left = queued.slice(1)
+      const newReads = [...read, next]
+      SubSets(newReads, left) // move one over at a time
     }
+  
     // igniter
-    SubSets([], numsToSum);
+    SubSets([], numsToSum)
+    */
     return { sums: sums, sets: sets };
 }
 exports.sumSets = sumSets;
@@ -124,4 +130,20 @@ function getPressMapByController(controller) {
     return output;
 }
 exports.getPressMapByController = getPressMapByController;
+function getCombinations(valuesArray) {
+    var combi = [];
+    var slent = Math.pow(2, valuesArray.length);
+    for (var i = 0; i < slent; i++) {
+        var temp = [];
+        for (var j = 0; j < valuesArray.length; j++) {
+            if ((i & Math.pow(2, j))) {
+                temp.push(valuesArray[j]);
+            }
+        }
+        if (temp.length > 0) {
+            combi.push(temp);
+        }
+    }
+    return combi;
+}
 //# sourceMappingURL=index.utils.js.map

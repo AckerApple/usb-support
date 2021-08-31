@@ -93,6 +93,12 @@ export function sumSets<T,W>(
   var sums: T[] = [] // every possible sum (typically single number value)
   var sets: W[][] = [] // each index matches sums (the items in sum)
 
+  getCombinations(numsToSum).forEach(read => {
+    const total = $sum(read)// read.reduce($sum as any, startValue) as any
+    sums.push(total) // record result of combing
+    sets.push(read.slice()) // clone read array
+  })
+  /*
   function SubSets(
     read: W[], // starts with no values
     queued: W[] // starts with all values
@@ -120,7 +126,7 @@ export function sumSets<T,W>(
 
   // igniter
   SubSets([], numsToSum)
-
+  */
   return {sums, sets}
 }
 
@@ -154,4 +160,24 @@ export function getPressMapByController(controller: DeviceProductLayout): PressM
 
 interface PressMap {
   [bits: string]: string[]
+}
+
+function getCombinations<T>(valuesArray: T[]): T[][] {
+  const combi = []
+  const slent = Math.pow(2, valuesArray.length)
+
+  for (var i = 0; i < slent; i++) {
+    const temp = []
+    for (var j = 0; j < valuesArray.length; j++) {
+      if ((i & Math.pow(2, j))) {
+        temp.push(valuesArray[j])
+      }
+    }
+
+    if (temp.length > 0) {
+      combi.push(temp)
+    }
+  }
+
+  return combi
 }
