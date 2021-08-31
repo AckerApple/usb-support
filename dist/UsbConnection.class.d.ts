@@ -12,6 +12,6 @@ export declare class UsbConnection extends Connection {
     startUsbMonitoring(): void;
     close(): void;
     getDeviceName(): string;
-    usbConnect(): DeviceProductLayout;
+    usbConnect(): DeviceProductLayout | undefined;
 }
 export declare function isUsbError(err: Error): boolean;

@@ -8,4 +8,5 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/shared"],
+  "exclude": ["**/*.spec.ts"]
 }

@@ -1,9 +1,10 @@
+import * as HID from 'node-hid';
 import { Subject } from 'rxjs';
 import GameControlEvents from './GameControlEvents';
 export interface IDevice {
     sendFeatureReport: (command: any[]) => any;
     readSync: () => number[];
-    read: (callback: (err: any, value: number[]) => any) => void;
+    read: (callback: (err: Error, value: number[]) => any) => void;
     listenerCount: () => number;
     eventNames: () => string[];
     addListener: (eventName: string, callback: (...args: any[]) => any) => any;
@@ -18,20 +19,20 @@ export interface ISubscriber {
     unsubscribe: () => any;
 }
 export declare class GameController extends GameControlEvents {
-    device: IDevice;
+    device?: HID.HID;
     $data: Subject<number[]>;
-    listener: (data: number[]) => any;
+    listener?: (data: number[]) => any;
     private subs;
     $error: Subject<unknown>;
     allowsInterfacing(): boolean;
     onNextChangeHold(callback: () => any, timeMs?: number): void;
     promiseNextIdle(): Promise<GameController>;
-    onNextIdle(callback: (err: Error, value: GameController) => any): any;
+    onNextIdle(callback: (err: Error | null, value: GameController) => any): any;
     isCurrentState(state: number[]): boolean;
-    paramDeviceConnect(): any;
+    paramDeviceConnect(): HID.HID | undefined;
     listen(): this;
-    tryConnection(): any;
-    tryVendorProductConnection(): any;
+    tryConnection(): HID.HID | undefined;
+    tryVendorProductConnection(): HID.HID | undefined;
     close(): void;
     mapIdle(): Promise<GameController>;
     paramIdle(): Promise<GameController>;

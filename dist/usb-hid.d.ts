@@ -1,6 +1,6 @@
-import { IDeviceMeta } from "./typings";
-export declare function listDevices(): IDeviceMeta[];
+import * as HID from 'node-hid';
+export declare function listDevices(): HID.Device[];
 export declare function listGameDevices(): {
     index: number;
-    device: IDeviceMeta;
+    device: HID.Device;
 }[];

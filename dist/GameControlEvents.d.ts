@@ -3,9 +3,9 @@ import { Subject } from 'rxjs';
 export declare class GameControlEvents {
     lastData: number[];
     meta: IDeviceMeta;
-    changedAt: number;
+    changedAt?: number;
     idle: number[];
-    isIdle: boolean;
+    isIdle?: boolean;
     $idle: Subject<void>;
     notIdle: Subject<void>;
     change: Subject<number[]>;

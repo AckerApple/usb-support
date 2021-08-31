@@ -75,30 +75,27 @@ export function findButtonCombo(
     return false
   }
 
-  const x = [current.value]
+  const x: IButtonState[] = [current]
 
   alikes.forEach(name => {
-    x.push( changedMap[name].value - current.idle )
+    x.push( changedMap[name] )
   })
 
-  const results = sumSets(x) // get every possible combination
+  const results = sumSets(x, (b: IButtonState[]) => {
+    return b.reduce((a,b) => a + b.value - current.idle, 0)
+  }) // get every possible combination
 
   return results.sets.find((items, index) => {
-    /*if (!items) {
-      console.log('results', results)
-      return false
-    }*/
-
     // remove all singular possible combinations
     if (items.length === 1) {
-      const isTheCurrentOne = items[0] === current.value || items[0] === current.value + current.idle
+      const isTheCurrentOne = items[0].value === current.value || items[0].value === current.value + current.idle
       if (!isTheCurrentOne) {
         return false
       }
     }
 
     // possible set must include current value
-    if (!items.includes(current.value)) {
+    if (!items.includes(current)) {
       return false
     }
 

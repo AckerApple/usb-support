@@ -1,6 +1,6 @@
 import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from '../shared/typings'
 import { SocketMessageType } from "../shared/enums"
-import * as controllers from '../controllers.json'
+import * as controllers from '../../controllers.json'
 import { HandlerClass } from "../shared/Handler.class"
 import { ack } from 'ack-x/js/ack'
 import * as WebSocket from 'ws'
@@ -14,9 +14,9 @@ export const controlConfigs: ControllerConfigs = controllers
 
 export default class WsHandler extends HandlerClass {
   constructor(
-    public ws: WebSocket.Server,
-    public controllerConfigs?: ControllerConfigs,
-    public listeners?: GameController[],
+    public ws: WebSocket,
+    public controllerConfigs: ControllerConfigs,
+    public listeners: GameController[],
   ) {
     super(controllerConfigs, listeners)
 

@@ -6,7 +6,7 @@ import * as WebSocket from 'ws'
 import * as nconf from "nconf"
 
 export const scope: {
-  connections: WebSocket.Server[]
+  connections: WebSocket[]
   usbListeners: GameController[]
 } = {
   connections: [],
@@ -31,7 +31,7 @@ export function startSocketServer() {
     ...serverConfig,
   })
 
-  wss.on('connection', ws => {
+  wss.on('connection', (ws: any) => {
     scope.connections.push(ws)
     console.log('------ connection opened', {connections: scope.connections.length})
 
@@ -73,7 +73,7 @@ export function startSocketServer() {
 function monitorUsbDeviceList() {
   var usbDetect = require('usb-detection');
   usbDetect.startMonitoring();
-  usbDetect.on('change', device => {
+  usbDetect.on('change', (_device: any) => {
     console.log('usb change', {connections: scope.connections.length})
     setTimeout(() =>
       scope.connections.forEach(ws =>

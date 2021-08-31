@@ -3,8 +3,8 @@ import { GameController } from './GameController';
 import { listDevices } from './usb-hid';
 import { Subject, Subscription } from 'rxjs';
 export declare class HandlerClass {
-    controllerConfigs?: ControllerConfigs;
-    listeners?: GameController[];
+    controllerConfigs: ControllerConfigs;
+    listeners: GameController[];
     deviceEvent: Subject<{
         device: IDeviceMeta;
         event: number[];
@@ -18,7 +18,7 @@ export declare class HandlerClass {
         sub: Subscription;
     }[];
     listDevices: typeof listDevices;
-    constructor(controllerConfigs?: ControllerConfigs, listeners?: GameController[]);
+    constructor(controllerConfigs: ControllerConfigs, listeners: GameController[]);
     getControllerHandler(device: IDeviceMeta, gameController: GameController): ControllerHandler;
     destroy(): void;
     paramDeviceSub(control: GameController): void;
@@ -30,14 +30,14 @@ export declare class HandlerClass {
     isControlSubscribed(controller: GameController): {
         control: GameController;
         sub: Subscription;
-    };
+    } | undefined;
     handleMessage(request: WssMessage): void;
 }
 export declare function getControlHander(config: DeviceProductLayout): ControllerHandler;
 export declare class ControllerHandler {
     config: DeviceProductLayout;
     control: GameController;
-    lastEvent: number[];
+    lastEvent?: number[];
     deviceEvent: Subject<number[]>;
     subs: Subscription;
     constructor(config: DeviceProductLayout, control: GameController);

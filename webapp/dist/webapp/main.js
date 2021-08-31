@@ -1069,7 +1069,7 @@ const relayOff = [
 /*!************************************!*\
   !*** ../src/shared/index.utils.ts ***!
   \************************************/
-/*! exports provided: getControlConfigByDevice, savedControllerToConfigs, isDeviceEventsSame, eventsMatch, cleanseDeviceEvent, devicesMatch, isDeviceController, getDeviceLabel, sumSets */
+/*! exports provided: getControlConfigByDevice, savedControllerToConfigs, isDeviceEventsSame, eventsMatch, cleanseDeviceEvent, devicesMatch, isDeviceController, getDeviceLabel, sumSets, getPressMapByController */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1083,6 +1083,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDeviceController", function() { return isDeviceController; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDeviceLabel", function() { return getDeviceLabel; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sumSets", function() { return sumSets; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getPressMapByController", function() { return getPressMapByController; });
 /** Files in here must be browser safe */
 function getControlConfigByDevice(configs, device) {
     const vendorId = String(device.vendorId);
@@ -1137,30 +1138,53 @@ function getDeviceLabel(device) {
     }
     return stringRef;
 }
-function sumSets(numsToSum) {
-    var sums = []; // every possible sum
-    var sets = []; // each index matches sums
+/** returns every combination of combing positions of an array */
+function sumSets(numsToSum, $sum = (items) => items.reduce((a, b) => a + b, 0)) {
+    var sums = []; // every possible sum (typically single number value)
+    var sets = []; // each index matches sums (the items in sum)
     function SubSets(read, // starts with no values
     queued // starts with all values
     ) {
         if (read.length) {
-            var total = read.reduce((a, b) => a + b, 0);
+            const total = $sum(read); // read.reduce($sum as any, startValue) as any
             sums.push(total); // record result of combing
             sets.push(read.slice()); // clone read array
         }
         if (read.length > 1) {
-            SubSets(read.slice(1, read.length), []);
+            SubSets(read.slice(1), []);
         }
         if (queued.length === 0) {
             return;
         }
         const next = queued[0];
         const left = queued.slice(1);
-        SubSets(read.concat(next), left); // move one over at a time
+        const newReads = [...read, next];
+        SubSets(newReads, left); // move one over at a time
     }
     // igniter
     SubSets([], numsToSum);
     return { sums, sets };
+}
+/** a map of all possible button presses */
+function getPressMapByController(controller) {
+    const data = Object.entries(controller.map);
+    const idle = controller.idle ? controller.idle : [0, 0, 0, 0, 0, 0, 0, 0];
+    const results = sumSets(data, (items) => {
+        const idleClone = idle.slice();
+        const processor = (set) => {
+            const item = set[1];
+            idleClone[item.pos] = idleClone[item.pos] + item.value - item.idle;
+        };
+        items.forEach(processor);
+        return idleClone;
+    });
+    const namedSets = results.sets.map(item => item.map(btn => btn[0]));
+    const output = results.sums.reduce((all, now, index) => {
+        all[now.join(' ')] = namedSets[index];
+        return all;
+    }, {});
+    output[idle.join(' ')] = [];
+    return output;
 }
 
 
@@ -1232,25 +1256,23 @@ current, { changedMap, seekValue }) {
     if (!alikes.length) {
         return false;
     }
-    const x = [current.value];
+    const x = [current];
     alikes.forEach(name => {
-        x.push(changedMap[name].value - current.idle);
+        x.push(changedMap[name]);
     });
-    const results = Object(_index_utils__WEBPACK_IMPORTED_MODULE_0__["sumSets"])(x); // get every possible combination
+    const results = Object(_index_utils__WEBPACK_IMPORTED_MODULE_0__["sumSets"])(x, (b) => {
+        return b.reduce((a, b) => a + b.value - current.idle, 0);
+    }); // get every possible combination
     return results.sets.find((items, index) => {
-        /*if (!items) {
-          console.log('results', results)
-          return false
-        }*/
         // remove all singular possible combinations
         if (items.length === 1) {
-            const isTheCurrentOne = items[0] === current.value || items[0] === current.value + current.idle;
+            const isTheCurrentOne = items[0].value === current.value || items[0].value === current.value + current.idle;
             if (!isTheCurrentOne) {
                 return false;
             }
         }
         // possible set must include current value
-        if (!items.includes(current.value)) {
+        if (!items.includes(current)) {
             return false;
         }
         if (seekValue === results.sums[index]) {

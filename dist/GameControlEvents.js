@@ -23,8 +23,9 @@ var GameControlEvents = /** @class */ (function () {
         };
     }
     GameControlEvents.prototype.onNewData = function (data) {
+        var _a;
         this.changedAt = Date.now();
-        if (this.idle.length || this.meta.interface == -1) {
+        if (this.idle.length || ((_a = this.meta) === null || _a === void 0 ? void 0 : _a.interface) == -1) {
             this.isIdle = this.determineIdleStateBy(data);
             if (this.isIdle) {
                 this.$idle.next();
@@ -42,7 +43,8 @@ var GameControlEvents = /** @class */ (function () {
     };
     // returns which bit buckets do not match
     GameControlEvents.prototype.determineIdleStateBy = function (data) {
-        if (this.meta.interface == -1) {
+        var _a;
+        if (((_a = this.meta) === null || _a === void 0 ? void 0 : _a.interface) == -1) {
             return this.determineInterfaceIdleState();
         }
         var rtn = {};

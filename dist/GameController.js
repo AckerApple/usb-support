@@ -72,7 +72,8 @@ var GameController = /** @class */ (function (_super) {
     }
     // device can be asked for state versus always reporting its state
     GameController.prototype.allowsInterfacing = function () {
-        return this.meta.interface === 0 ? false : true;
+        var _a;
+        return ((_a = this.meta) === null || _a === void 0 ? void 0 : _a.interface) === 0 ? false : true;
     };
     GameController.prototype.onNextChangeHold = function (callback, timeMs) {
         var _this = this;
@@ -207,6 +208,7 @@ var GameController = /** @class */ (function (_super) {
                     return [2 /*return*/, Promise.resolve(this)];
                 }
                 return [2 /*return*/, new Promise(function (res, rej) {
+                        var _a;
                         var timeout = setTimeout(function () {
                             rej(new Error("Could not map idle state of " + _this.meta.product + " in timely fashion"));
                         }, 1000);
@@ -215,7 +217,7 @@ var GameController = /** @class */ (function (_super) {
                             _this.idle = data;
                             res(_this);
                         };
-                        _this.device.read(function (err, data) {
+                        (_a = _this.device) === null || _a === void 0 ? void 0 : _a.read(function (err, data) {
                             if (err) {
                                 rej(new Error("Could not map idle state of " + _this.meta.product + " due to " + err.message));
                                 return;

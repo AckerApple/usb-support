@@ -1,7 +1,7 @@
 /** Files in here must be browser safe */
 
 import { Device, HID } from "node-hid";
-import { ControllerConfigs, DeviceProductLayout, IDeviceMeta } from "./typings";
+import { ControllerConfigs, DeviceProductLayout, IButtonState, IDeviceMeta } from "./typings";
 
 export function getControlConfigByDevice(configs: ControllerConfigs, device: IDeviceMeta) {
   const vendorId = String(device.vendorId)
@@ -85,24 +85,26 @@ export function getDeviceLabel(device: IDeviceMeta) {
   return stringRef
 }
 
-export function sumSets(
-  numsToSum: number[]
-): {sums: number[], sets: number[][]} {
-  var sums: number[] = [] // every possible sum
-  var sets: number[][] = [] // each index matches sums
+/** returns every combination of combing positions of an array */
+export function sumSets<T,W>(
+  numsToSum: W[],
+  $sum: (items: W[], index?: number) => T = (items: any[]) => items.reduce((a,b) => a + b, 0)
+): {sums: T[], sets: W[][]} {
+  var sums: T[] = [] // every possible sum (typically single number value)
+  var sets: W[][] = [] // each index matches sums (the items in sum)
 
   function SubSets(
-    read: number[], // starts with no values
-    queued: number[] // starts with all values
+    read: W[], // starts with no values
+    queued: W[] // starts with all values
   ) {
     if (read.length) {
-      var total = read.reduce((a,b) => a +b, 0);
+      const total = $sum(read)// read.reduce($sum as any, startValue) as any
       sums.push(total) // record result of combing
       sets.push(read.slice()) // clone read array
     }
 
     if (read.length > 1) {
-      SubSets(read.slice(1, read.length), [])
+      SubSets(read.slice(1), [])
     }
 
     if (queued.length === 0) {
@@ -110,12 +112,46 @@ export function sumSets(
     }
 
     const next = queued[0]
+
     const left = queued.slice(1)
-    SubSets(read.concat(next), left) // move one over at a time
+    const newReads = [...read, next]
+    SubSets(newReads, left) // move one over at a time
   }
 
   // igniter
   SubSets([], numsToSum)
 
   return {sums, sets}
+}
+
+/** a map of all possible button presses */
+export function getPressMapByController(controller: DeviceProductLayout): PressMap {
+  const data = Object.entries(controller.map)
+  const idle = controller.idle ? controller.idle : [0,0,0,0,0,0,0,0]
+
+  const results = sumSets(data,
+    (items: [string, IButtonState][]) => {
+      const idleClone = idle.slice()
+      const processor = (set: [string, IButtonState]) => {
+        const item = set[1]
+        idleClone[item.pos] = idleClone[item.pos] + item.value - item.idle
+      }
+      items.forEach(processor)
+      return idleClone
+    }
+  )
+
+  const namedSets = results.sets.map(item => item.map(btn => btn[0])) as any
+  const output = results.sums.reduce((all, now, index) => {
+    all[now.join(' ')] = namedSets[index]
+    return all
+  },{} as PressMap)
+
+  output[idle.join(' ')] = []
+
+  return output
+}
+
+interface PressMap {
+  [bits: string]: string[]
 }

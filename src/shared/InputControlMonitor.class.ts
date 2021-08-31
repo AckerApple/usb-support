@@ -2,7 +2,7 @@ import { Subscription, Subject } from 'rxjs';
 import { decodeDeviceMetaState, getControlHander } from './index'
 import { ControllerHandler } from './Handler.class';
 import { DeviceProductLayout } from './typings';
-import { sumSets } from './index.utils';
+import { getPressMapByController, sumSets } from './index.utils';
 
 export class InputControlMonitor {
   $change: Subject<string[]> = new Subject()
@@ -35,12 +35,17 @@ export class InputControlMonitor {
   }
 
   monitorControl(controller: ControllerHandler) {
-    // const possibleButtons = getPossibleBtnMap(controller)
+    // build a map of every possible button combination
+    const possibleButtons = getPressMapByController(controller.config)
 
     this.subs.add(
       controller.deviceEvent.subscribe(deviceEvent => {
         // todo: use a map to decode instead of runtime
-        this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
+        // this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
+
+        const bitKey = deviceEvent.join(' ')
+        this.lastPressed = possibleButtons[bitKey]
+
         this.$change.next(this.lastPressed)
       })
     )

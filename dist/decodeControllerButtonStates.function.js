@@ -1,12 +1,15 @@
 "use strict";
 exports.__esModule = true;
-exports.decodeDeviceMetaState = void 0;
+exports.findButtonCombo = exports.getSamePosButtons = exports.decodeDeviceMetaState = void 0;
+var index_utils_1 = require("./index.utils");
 exports["default"] = decodeDeviceMetaState;
+/** runtime decode button presses
+ * - Todo: More performance using a map of all possible presses instead of using this
+*/
 function decodeDeviceMetaState(metaState, event // 8 bits
 ) {
-    var pressedButtons = [];
     if (!metaState.map || !event) {
-        return pressedButtons;
+        return [];
     }
     var changedMap = getButtonMapByEvent(metaState.map, event);
     return Object.keys(changedMap).filter(function (buttonName) {
@@ -24,16 +27,7 @@ function decodeDeviceMetaState(metaState, event // 8 bits
             return true;
         }
         // items on the same pos
-        var alikes = Object.keys(changedMap)
-            .filter(function (otherBtnName) {
-            if (otherBtnName === buttonName) {
-                return false;
-            }
-            if (changedMap[otherBtnName].pos !== current.pos) {
-                return false;
-            }
-            return true;
-        });
+        var alikes = getSamePosButtons(buttonName, changedMap);
         // combined value match
         var match = findButtonCombo(alikes, current, { changedMap: changedMap, seekValue: seekValue });
         if (match) {
@@ -43,19 +37,52 @@ function decodeDeviceMetaState(metaState, event // 8 bits
     });
 }
 exports.decodeDeviceMetaState = decodeDeviceMetaState;
-function findButtonCombo(alikes, current, _a) {
-    var changedMap = _a.changedMap, seekValue = _a.seekValue, _b = _a.alreadytried, alreadytried = _b === void 0 ? [] : _b;
+function getSamePosButtons(buttonName, changedMap) {
+    return Object.keys(changedMap)
+        .filter(function (otherBtnName) {
+        if (otherBtnName === buttonName) {
+            return false;
+        }
+        if (changedMap[otherBtnName].pos !== changedMap[buttonName].pos) {
+            return false;
+        }
+        return true;
+    });
+}
+exports.getSamePosButtons = getSamePosButtons;
+/** determines if multiple button pressed  */
+function findButtonCombo(alikes, // two or more button names
+current, _a) {
+    var changedMap = _a.changedMap, seekValue = _a.seekValue;
     if (!alikes.length) {
         return false;
     }
-    var x = [current.value];
+    var x = [current];
     alikes.forEach(function (name) {
-        x.push(changedMap[name].value - current.idle);
+        x.push(changedMap[name]);
     });
-    var results = sumSets(x);
-    return results.sums.includes(seekValue);
+    var results = index_utils_1.sumSets(x, function (b) {
+        return b.reduce(function (a, b) { return a + b.value - current.idle; }, 0);
+    }); // get every possible combination
+    return results.sets.find(function (items, index) {
+        // remove all singular possible combinations
+        if (items.length === 1) {
+            var isTheCurrentOne = items[0].value === current.value || items[0].value === current.value + current.idle;
+            if (!isTheCurrentOne) {
+                return false;
+            }
+        }
+        // possible set must include current value
+        if (!items.includes(current)) {
+            return false;
+        }
+        if (seekValue === results.sums[index]) {
+            return true;
+        }
+    }) !== undefined;
 }
-function getButtonMapByEvent(map, currentBits // 8
+exports.findButtonCombo = findButtonCombo;
+function getButtonMapByEvent(map, currentBits // length === 8
 ) {
     return currentBits.reduce(function (all, current, index) {
         Object.keys(map)
@@ -65,26 +92,5 @@ function getButtonMapByEvent(map, currentBits // 8
             .forEach(function (buttonName) { return all[buttonName] = map[buttonName]; });
         return all;
     }, {});
-}
-function sumSets(x) {
-    var sums = [];
-    var sets = [];
-    function SubSets(read, queued) {
-        if (read.length == 4 || (read.length <= 4 && queued.length == 0)) {
-            if (read.length > 0) {
-                var total = read.reduce(function (a, b) { return a + b; }, 0);
-                if (sums.indexOf(total) == -1) {
-                    sums.push(total);
-                    sets.push(read.slice().sort());
-                }
-            }
-        }
-        else {
-            SubSets(read.concat(queued[0]), queued.slice(1));
-            SubSets(read, queued.slice(1));
-        }
-    }
-    SubSets([], x);
-    return { sums: sums, sets: sets };
 }
 //# sourceMappingURL=decodeControllerButtonStates.function.js.map
