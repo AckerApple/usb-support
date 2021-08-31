@@ -831,7 +831,7 @@ class AppComponent {
         if (typeof error === 'string') {
             error = new Error(error);
         }
-        const readable = ack_x_js_ack__WEBPACK_IMPORTED_MODULE_6__["ack"].error(error).toObject();
+        const readable = ack_x_js_ack__WEBPACK_IMPORTED_MODULE_6__["ackExpose"].error(error).toObject();
         this.debug.lastLogs.error = Object.assign(Object.assign(Object.assign({}, readable), error), extra.reduce((all, one) => (Object.assign(Object.assign({}, all), one)), {}));
         // console.log('lastLogs.error updated')
         console.error(Object.assign({ error }, extra));
@@ -1025,6 +1025,40 @@ AppModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdefineInjector
 (function () { (typeof ngJitMode === "undefined" || ngJitMode) && _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵsetNgModuleScope"](AppModule, { declarations: [_app_component__WEBPACK_IMPORTED_MODULE_2__["AppComponent"]], imports: [_angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__["BrowserModule"],
         _app_routing_module__WEBPACK_IMPORTED_MODULE_1__["AppRoutingModule"]] }); })();
 
+
+/***/ }),
+
+/***/ "ZPnb":
+/*!********************************************************!*\
+  !*** ../node_modules/moment-mini/locale sync ^\.\/.*$ ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var map = {
+	"./locale": "bCXH",
+	"./locale.js": "bCXH"
+};
+
+
+function webpackContext(req) {
+	var id = webpackContextResolve(req);
+	return __webpack_require__(id);
+}
+function webpackContextResolve(req) {
+	if(!__webpack_require__.o(map, req)) {
+		var e = new Error("Cannot find module '" + req + "'");
+		e.code = 'MODULE_NOT_FOUND';
+		throw e;
+	}
+	return map[req];
+}
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = "ZPnb";
 
 /***/ }),
 

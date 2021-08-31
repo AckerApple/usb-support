@@ -93,7 +93,7 @@ export class UsbConnection extends Connection {
       this.monitor.monitorByConfig(this.controllerConfig)
       this.$connected.next()
       return this.controllerConfig
-    } catch (err) {
+    } catch (err: any) {
       this.$failed.next(err)
     }
   }

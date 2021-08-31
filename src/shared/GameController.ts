@@ -147,7 +147,7 @@ export class GameController extends GameControlEvents {
       const device = new HID.HID(this.meta.vendorId, this.meta.productId)
       // console.log('connected to by ids', this.meta.path)
       return device
-    } catch (err) {
+    } catch (err: any) {
       err.message = err.message + `(vId:${this.meta.vendorId} pId:${this.meta.productId} ${this.meta.product})`
       err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
       // console.error("Could not connect to device", err);

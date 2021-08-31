@@ -7,6 +7,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -39,7 +41,7 @@ var UsbConnection = /** @class */ (function (_super) {
         usbDetect.startMonitoring();
         // Be informed of when device goes down or back up
         usbDetect.on('change', function (device) {
-            if (index_utils_1.devicesMatch(device, _this.controllerConfig.meta)) {
+            if ((0, index_utils_1.devicesMatch)(device, _this.controllerConfig.meta)) {
                 // this.$connect.next()
                 _this.connect();
             }
@@ -85,7 +87,7 @@ var UsbConnection = /** @class */ (function (_super) {
         process.removeListener('SIGINT', this.listeners.SIGINT);
     };
     UsbConnection.prototype.getDeviceName = function () {
-        return index_utils_1.getDeviceLabel(this.controllerConfig.meta);
+        return (0, index_utils_1.getDeviceLabel)(this.controllerConfig.meta);
     };
     UsbConnection.prototype.usbConnect = function () {
         if (this.monitor.controllers.length) {

@@ -16,7 +16,7 @@ var InputControlMonitor = /** @class */ (function () {
         return this.monitorControl(handler);
     };
     InputControlMonitor.prototype.getControlHandlerByConfig = function (config) {
-        return index_1.getControlHander(config);
+        return (0, index_1.getControlHander)(config);
     };
     InputControlMonitor.prototype.reset = function () {
         /* maybe unused */
@@ -32,7 +32,7 @@ var InputControlMonitor = /** @class */ (function () {
     InputControlMonitor.prototype.monitorControl = function (controller) {
         var _this = this;
         // build a map of every possible button combination
-        var possibleButtons = index_utils_1.getPressMapByController(controller.config);
+        var possibleButtons = (0, index_utils_1.getPressMapByController)(controller.config);
         this.subs.add(controller.deviceEvent.subscribe(function (deviceEvent) {
             // todo: use a map to decode instead of runtime
             // this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)

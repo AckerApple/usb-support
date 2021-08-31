@@ -61,7 +61,7 @@ current, _a) {
     alikes.forEach(function (name) {
         x.push(changedMap[name]);
     });
-    var results = index_utils_1.sumSets(x, function (b) {
+    var results = (0, index_utils_1.sumSets)(x, function (b) {
         return b.reduce(function (a, b) { return a + b.value - current.idle; }, 0);
     }); // get every possible combination
     return results.sets.find(function (items, index) {

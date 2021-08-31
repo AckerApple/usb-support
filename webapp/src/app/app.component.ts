@@ -7,7 +7,7 @@ import { socketPort } from '../../../src/shared/config.json'
 import { relayOn, relayOff } from './relayPositions'
 import { getDeviceLabel, getControlConfigByDevice, eventsMatch, devicesMatch, isDeviceController } from '../../../src/shared/index.utils'
 import decodeDeviceMetaState from '../../../src/shared/decodeControllerButtonStates.function'
-import { ack } from 'ack-x/js/ack'
+import { ackExpose as ack } from 'ack-x/js/ack'
 import { copyText, DebugData, download, IDeviceMetaState, testController } from './app.utils'
 import { Device } from 'node-hid'
 
