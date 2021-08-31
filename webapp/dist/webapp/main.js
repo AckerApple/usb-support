@@ -1,13 +1,32 @@
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([["main"],{
 
-/***/ "/GmE":
-/*!*****************************!*\
-  !*** ../shared/config.json ***!
-  \*****************************/
-/*! exports provided: socketPort, socketHost, default */
-/***/ (function(module) {
+/***/ "/2eP":
+/*!******************************!*\
+  !*** ../src/shared/enums.ts ***!
+  \******************************/
+/*! exports provided: SocketMessageType */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-module.exports = JSON.parse("{\"socketPort\":8081,\"socketHost\":\"0.0.0.0\"}");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SocketMessageType", function() { return SocketMessageType; });
+var SocketMessageType;
+(function (SocketMessageType) {
+    // client side
+    SocketMessageType["UNSUBSCRIBEDEVICE"] = "unsubscribeDevice";
+    SocketMessageType["LISTENTODEVICE"] = "listenToDevice";
+    SocketMessageType["WRITETODEVICE"] = "writeToDevice";
+    SocketMessageType["REFRESH"] = "refresh";
+    SocketMessageType["GETSAVEDCONTROLLERS"] = "getSavedControllers";
+    SocketMessageType["SAVECONTROLLERS"] = "save_controllers";
+    // server side
+    SocketMessageType["DEVICEEVENT_CHANGE"] = "deviceEvent.change";
+    SocketMessageType["LISTENERS"] = "listeners";
+    SocketMessageType["SAVEDCONTROLLERS"] = "savedControllers";
+    SocketMessageType["DEVICES"] = "devices";
+    SocketMessageType["ERROR"] = "error";
+})(SocketMessageType || (SocketMessageType = {}));
+
 
 /***/ }),
 
@@ -33,7 +52,7 @@ module.exports = __webpack_require__(/*! /Users/ackerapple/projects/services/usb
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return mapController; });
-/* harmony import */ var _shared_delayLog_function__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/delayLog.function */ "stIS");
+/* harmony import */ var _src_shared_delayLog_function__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/shared/delayLog.function */ "En4g");
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! rxjs */ "qCKp");
 
 
@@ -58,7 +77,7 @@ class GameControlChangeListener {
     }
     askForButton() {
         const key = this.getNextQuestion();
-        Object(_shared_delayLog_function__WEBPACK_IMPORTED_MODULE_0__["default"])("\x1b[36mPush the " + key + " key\x1b[0m");
+        Object(_src_shared_delayLog_function__WEBPACK_IMPORTED_MODULE_0__["default"])("\x1b[36mPush the " + key + " key\x1b[0m");
     }
     // listener from button press
     handler() {
@@ -130,103 +149,31 @@ const environment = {
 
 /***/ }),
 
-/***/ "FLXE":
-/*!********************************!*\
-  !*** ../shared/index.utils.ts ***!
-  \********************************/
-/*! exports provided: getControlConfigByDevice, savedControllerToConfigs, isDeviceEventsSame, eventsMatch, cleanseDeviceEvent, devicesMatch, isDeviceController, getDeviceLabel */
+/***/ "En4g":
+/*!******************************************!*\
+  !*** ../src/shared/delayLog.function.ts ***!
+  \******************************************/
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getControlConfigByDevice", function() { return getControlConfigByDevice; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "savedControllerToConfigs", function() { return savedControllerToConfigs; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDeviceEventsSame", function() { return isDeviceEventsSame; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "eventsMatch", function() { return eventsMatch; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cleanseDeviceEvent", function() { return cleanseDeviceEvent; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "devicesMatch", function() { return devicesMatch; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDeviceController", function() { return isDeviceController; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDeviceLabel", function() { return getDeviceLabel; });
-/** Files in here must be browser safe */
-function getControlConfigByDevice(configs, device) {
-    const vendorId = String(device.vendorId);
-    const productId = String(device.productId);
-    const products = configs[vendorId];
-    if (!products) {
-        return;
-    }
-    return products[productId];
-}
-function savedControllerToConfigs(controller, controlConfigs = {}) {
-    const { vendorId, productId } = controller.meta;
-    const vendorOb = controlConfigs[vendorId] = controlConfigs[vendorId] || {};
-    vendorOb[productId] = controller;
-    return controlConfigs;
-}
-function isDeviceEventsSame(device, event0, event1) {
-    const castedEvent0 = cleanseDeviceEvent(device, event0);
-    const castedEvent1 = cleanseDeviceEvent(device, event1);
-    return eventsMatch(castedEvent0, castedEvent1);
-}
-function eventsMatch(event0, event1) {
-    return event0.every((item, index) => item === event1[index]);
-}
-function cleanseDeviceEvent(device, event) {
-    return event.map((number, index) => cleanseDeviceEventPos(device, number, index));
-}
-function cleanseDeviceEventPos(device, number, index) {
-    var _a;
-    return ((_a = device.ignoreBits) === null || _a === void 0 ? void 0 : _a.includes(index)) ? 0 : number;
-}
-function devicesMatch(device, lDevice) {
-    return device === lDevice || device.productId === lDevice.productId && device.vendorId === lDevice.vendorId;
-}
-function isDeviceController(device) {
-    return (device.usage === 5 && device.usagePage === 1)
-        || (device.usage === 4 && device.usagePage === 1)
-        || device.product.toLowerCase().indexOf("controller") >= 0
-        || device.product.toLowerCase().indexOf("game") >= 0
-        || device.product.toLowerCase().indexOf("joystick") >= 0;
-}
-function getDeviceLabel(device) {
-    var _a;
-    let stringRef = ((_a = device.product) === null || _a === void 0 ? void 0 : _a.trim()) || '';
-    if (device.manufacturer) {
-        stringRef += ' by ' + device.manufacturer;
-    }
-    return stringRef;
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return delayLog; });
+function delayLog(...args) {
+    setTimeout(() => console.log(...args), 300);
 }
 
 
 /***/ }),
 
-/***/ "P+wG":
-/*!**************************!*\
-  !*** ../shared/enums.ts ***!
-  \**************************/
-/*! exports provided: SocketMessageType */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ "O0UH":
+/*!*********************************!*\
+  !*** ../src/shared/config.json ***!
+  \*********************************/
+/*! exports provided: socketPort, socketHost, default */
+/***/ (function(module) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SocketMessageType", function() { return SocketMessageType; });
-var SocketMessageType;
-(function (SocketMessageType) {
-    // client side
-    SocketMessageType["UNSUBSCRIBEDEVICE"] = "unsubscribeDevice";
-    SocketMessageType["LISTENTODEVICE"] = "listenToDevice";
-    SocketMessageType["WRITETODEVICE"] = "writeToDevice";
-    SocketMessageType["REFRESH"] = "refresh";
-    SocketMessageType["GETSAVEDCONTROLLERS"] = "getSavedControllers";
-    SocketMessageType["SAVECONTROLLERS"] = "save_controllers";
-    // server side
-    SocketMessageType["DEVICEEVENT_CHANGE"] = "deviceEvent.change";
-    SocketMessageType["LISTENERS"] = "listeners";
-    SocketMessageType["SAVEDCONTROLLERS"] = "savedControllers";
-    SocketMessageType["DEVICES"] = "devices";
-    SocketMessageType["ERROR"] = "error";
-})(SocketMessageType || (SocketMessageType = {}));
-
+module.exports = JSON.parse("{\"socketPort\":8081,\"socketHost\":\"0.0.0.0\"}");
 
 /***/ }),
 
@@ -278,102 +225,6 @@ function copyText(text) {
 
 /***/ }),
 
-/***/ "SD2A":
-/*!**********************************************************!*\
-  !*** ../shared/decodeControllerButtonStates.function.ts ***!
-  \**********************************************************/
-/*! exports provided: default, decodeDeviceMetaState */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decodeDeviceMetaState", function() { return decodeDeviceMetaState; });
-/* harmony default export */ __webpack_exports__["default"] = (decodeDeviceMetaState);
-function decodeDeviceMetaState(metaState, event // 8 bits
-) {
-    const pressedButtons = [];
-    if (!metaState.map || !event) {
-        return pressedButtons;
-    }
-    const changedMap = getButtonMapByEvent(metaState.map, event);
-    return Object.keys(changedMap).filter((buttonName) => {
-        const current = changedMap[buttonName];
-        const currentPos = current.pos;
-        const seekValue = event[currentPos];
-        // does another matching position have an exact match?
-        const otherHasExact = Object.values(changedMap)
-            .find(btnMap => btnMap.pos === currentPos && btnMap !== current && btnMap.value === seekValue);
-        if (otherHasExact) {
-            return false;
-        }
-        // direct value match
-        if (current.value === seekValue) {
-            return true;
-        }
-        // items on the same pos
-        const alikes = Object.keys(changedMap)
-            .filter(otherBtnName => {
-            if (otherBtnName === buttonName) {
-                return false;
-            }
-            if (changedMap[otherBtnName].pos !== current.pos) {
-                return false;
-            }
-            return true;
-        });
-        // combined value match
-        const match = findButtonCombo(alikes, current, { changedMap, seekValue });
-        if (match) {
-            return true;
-        }
-        return false;
-    });
-}
-function findButtonCombo(alikes, current, { changedMap, seekValue, alreadytried = [] }) {
-    if (!alikes.length) {
-        return false;
-    }
-    const x = [current.value];
-    alikes.forEach(name => {
-        x.push(changedMap[name].value - current.idle);
-    });
-    const results = sumSets(x);
-    return results.sums.includes(seekValue);
-}
-function getButtonMapByEvent(map, currentBits // 8
-) {
-    return currentBits.reduce((all, current, index) => {
-        Object.keys(map)
-            .filter((buttonName) => map[buttonName].pos === index && map[buttonName].idle !== current)
-            .forEach(buttonName => all[buttonName] = map[buttonName]);
-        return all;
-    }, {});
-}
-function sumSets(x) {
-    var sums = [];
-    var sets = [];
-    function SubSets(read, queued) {
-        if (read.length == 4 || (read.length <= 4 && queued.length == 0)) {
-            if (read.length > 0) {
-                var total = read.reduce(function (a, b) { return a + b; }, 0);
-                if (sums.indexOf(total) == -1) {
-                    sums.push(total);
-                    sets.push(read.slice().sort());
-                }
-            }
-        }
-        else {
-            SubSets(read.concat(queued[0]), queued.slice(1));
-            SubSets(read, queued.slice(1));
-        }
-    }
-    SubSets([], x);
-    return { sums, sets };
-}
-
-
-/***/ }),
-
 /***/ "Sy1n":
 /*!**********************************!*\
   !*** ./src/app/app.component.ts ***!
@@ -384,13 +235,13 @@ function sumSets(x) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppComponent", function() { return AppComponent; });
-/* harmony import */ var _shared_enums__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/enums */ "P+wG");
+/* harmony import */ var _src_shared_enums__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/shared/enums */ "/2eP");
 /* harmony import */ var _mapController_function__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mapController.function */ "0L1a");
-/* harmony import */ var _shared_config_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../shared/config.json */ "/GmE");
-var _shared_config_json__WEBPACK_IMPORTED_MODULE_2___namespace = /*#__PURE__*/__webpack_require__.t(/*! ../../../shared/config.json */ "/GmE", 1);
+/* harmony import */ var _src_shared_config_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../src/shared/config.json */ "O0UH");
+var _src_shared_config_json__WEBPACK_IMPORTED_MODULE_2___namespace = /*#__PURE__*/__webpack_require__.t(/*! ../../../src/shared/config.json */ "O0UH", 1);
 /* harmony import */ var _relayPositions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./relayPositions */ "jC4L");
-/* harmony import */ var _shared_index_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../shared/index.utils */ "FLXE");
-/* harmony import */ var _shared_decodeControllerButtonStates_function__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../shared/decodeControllerButtonStates.function */ "SD2A");
+/* harmony import */ var _src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../src/shared/index.utils */ "neOj");
+/* harmony import */ var _src_shared_decodeControllerButtonStates_function__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../src/shared/decodeControllerButtonStates.function */ "oCL0");
 /* harmony import */ var ack_x_js_ack__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ack-x/js/ack */ "4/WS");
 /* harmony import */ var ack_x_js_ack__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(ack_x_js_ack__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _app_utils__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./app.utils */ "R2Xm");
@@ -671,7 +522,7 @@ const socketHost = window.location.hostname;
 class AppComponent {
     constructor() {
         this.title = 'webapp';
-        this.wsUrl = `ws://${socketHost}:${_shared_config_json__WEBPACK_IMPORTED_MODULE_2__["socketPort"]}`;
+        this.wsUrl = `ws://${socketHost}:${_src_shared_config_json__WEBPACK_IMPORTED_MODULE_2__["socketPort"]}`;
         this.command = '0x00, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00';
         this.relayOn = _relayPositions__WEBPACK_IMPORTED_MODULE_3__["relayOn"];
         this.relayOff = _relayPositions__WEBPACK_IMPORTED_MODULE_3__["relayOff"];
@@ -762,29 +613,29 @@ class AppComponent {
             this.devices[index].meta = device;
         });
         const devices = this.devices.map(device => device.meta);
-        this.controllers = devices.filter(device => Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["isDeviceController"])(device));
-        this.nonControllers = devices.filter(device => !Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["isDeviceController"])(device));
+        this.controllers = devices.filter(device => Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["isDeviceController"])(device));
+        this.nonControllers = devices.filter(device => !Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["isDeviceController"])(device));
         this.log('controllers', this.controllers);
         this.log('other devices', this.nonControllers);
     }
     handleMessage(data) {
         switch (data.type) {
-            case _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].DEVICES:
+            case _src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].DEVICES:
                 this.devicesUpdate(data.data);
                 break;
-            case _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].SAVEDCONTROLLERS:
+            case _src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].SAVEDCONTROLLERS:
                 if (data.data) {
                     this.savedControllers = data.data;
                     this.log('savedControllers', data.data);
                 }
                 break;
-            case _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].LISTENERS:
+            case _src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].LISTENERS:
                 this.onListeners(data.data);
                 break;
-            case _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].DEVICEEVENT_CHANGE:
+            case _src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].DEVICEEVENT_CHANGE:
                 this.onDeviceEventChange(data.data.event, data.data.device);
                 break;
-            case _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].ERROR:
+            case _src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].ERROR:
                 this.error(data.data);
                 break;
             default:
@@ -805,7 +656,7 @@ class AppComponent {
             this.listeners[index].meta = device;
         });
         this.controllers.forEach(controller => {
-            const find = this.listeners.find(lDevice => Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(controller, lDevice.meta));
+            const find = this.listeners.find(lDevice => Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(controller, lDevice.meta));
             if (find) {
                 return controller.subscribed = true;
             }
@@ -813,10 +664,10 @@ class AppComponent {
         });
     }
     getControlConfigByDevice(device) {
-        return Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getControlConfigByDevice"])(this.savedControllers, device);
+        return Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getControlConfigByDevice"])(this.savedControllers, device);
     }
     onDeviceEventChange(event, device) {
-        const matchedListener = this.listeners.find(listener => Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(listener.meta, device));
+        const matchedListener = this.listeners.find(listener => Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(listener.meta, device));
         // no match? no work to do
         if (!matchedListener) {
             return;
@@ -828,10 +679,10 @@ class AppComponent {
         }
     }
     getDeviceListener(device) {
-        return this.listeners.find(listener => Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(listener.meta, device));
+        return this.listeners.find(listener => Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(listener.meta, device));
     }
     processDeviceUpdate(matchedListener) {
-        const pressedKeyNames = Object(_shared_decodeControllerButtonStates_function__WEBPACK_IMPORTED_MODULE_5__["default"])(matchedListener, matchedListener.lastEvent);
+        const pressedKeyNames = Object(_src_shared_decodeControllerButtonStates_function__WEBPACK_IMPORTED_MODULE_5__["default"])(matchedListener, matchedListener.lastEvent);
         matchedListener.pressed = pressedKeyNames;
         matchedListener.map = matchedListener.map || {};
         if (matchedListener.recording && !pressedKeyNames.length) {
@@ -845,7 +696,7 @@ class AppComponent {
     recordDeviceEvent(matchedListener) {
         const idleMap = matchedListener.idle;
         const pressedKeyNames = matchedListener.pressed;
-        const isIdle = Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["eventsMatch"])(matchedListener.lastEvent, idleMap);
+        const isIdle = Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["eventsMatch"])(matchedListener.lastEvent, idleMap);
         if (isIdle) {
             return;
         }
@@ -865,7 +716,7 @@ class AppComponent {
         });
     }
     confirmDeleteController(controller) {
-        if (!confirm(`confirm delete ${Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getDeviceLabel"])(controller.meta)}`)) {
+        if (!confirm(`confirm delete ${Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getDeviceLabel"])(controller.meta)}`)) {
             return;
         }
         const vendorId = String(controller.meta.vendorId);
@@ -892,7 +743,7 @@ class AppComponent {
                 controllers[vendorId][productId] = controllerSaveFormat(product);
             });
         });
-        this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].SAVECONTROLLERS, controllers);
+        this.wssSend(_src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].SAVECONTROLLERS, controllers);
     }
     addTestController() {
         this.controllers.push(_app_utils__WEBPACK_IMPORTED_MODULE_7__["testController"]);
@@ -904,7 +755,7 @@ class AppComponent {
         });
     }
     fetchSavedControllers() {
-        this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].GETSAVEDCONTROLLERS);
+        this.wssSend(_src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].GETSAVEDCONTROLLERS);
     }
     wssSend(type, data) {
         const payload = { type, data };
@@ -913,42 +764,42 @@ class AppComponent {
         return this;
     }
     fetchUsbDevices() {
-        this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].REFRESH);
+        this.wssSend(_src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].REFRESH);
     }
     getSavedControllers() {
-        this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].GETSAVEDCONTROLLERS);
+        this.wssSend(_src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].GETSAVEDCONTROLLERS);
     }
     writeToDevice(device, command) {
-        this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].WRITETODEVICE, { device: device.meta, command });
+        this.wssSend(_src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].WRITETODEVICE, { device: device.meta, command });
     }
     writeToDeviceByString(device, command) {
         const sendCommand = command.map(x => parseInt(Number(x.trim()), 10) || 0);
         this.writeToDevice(device, sendCommand);
     }
     toggleDeviceConnection(device) {
-        const deviceMatch = this.listeners.find(xDevice => Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(device, xDevice.meta));
+        const deviceMatch = this.listeners.find(xDevice => Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(device, xDevice.meta));
         if (deviceMatch) {
             delete deviceMatch.subscribed;
             const controller = this.deviceToController(deviceMatch.meta);
             controller.subscribed = false;
             console.log('controller --- ', controller);
-            const stringRef = Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getDeviceLabel"])(device);
+            const stringRef = Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getDeviceLabel"])(device);
             this.log({
                 message: `Unsubscribed from ${stringRef}`
             });
-            this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].UNSUBSCRIBEDEVICE, device);
+            this.wssSend(_src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].UNSUBSCRIBEDEVICE, device);
             return false;
         }
         return true;
     }
     listenToDevice(device) {
         // console.log('device', device)
-        const stringRef = Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getDeviceLabel"])(device);
+        const stringRef = Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getDeviceLabel"])(device);
         this.log({
             message: `attempting to listen to ${stringRef}`, device
         });
         const savedControllers = Object.values(this.savedControllers).reduce((all, current) => [...all, ...Object.values(current)], []);
-        const savedController = savedControllers.find(xSaved => Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(device, xSaved.meta));
+        const savedController = savedControllers.find(xSaved => Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(device, xSaved.meta));
         if (savedController) {
             this.savedController = savedController;
         }
@@ -960,10 +811,10 @@ class AppComponent {
         this.log({
             message: `requesting web socket to listen to ${stringRef}`
         });
-        this.wssSend(_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].LISTENTODEVICE, device);
+        this.wssSend(_src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].LISTENTODEVICE, device);
         if (device === _app_utils__WEBPACK_IMPORTED_MODULE_7__["testController"]) {
             this.handleMessage({
-                type: _shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].LISTENERS,
+                type: _src_shared_enums__WEBPACK_IMPORTED_MODULE_0__["SocketMessageType"].LISTENERS,
                 data: {
                     devices: this.devices,
                     controllers: this.controllers,
@@ -974,7 +825,7 @@ class AppComponent {
         }
     }
     deviceToController(device) {
-        return this.controllers.find(control => Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(device, control));
+        return this.controllers.find(control => Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["devicesMatch"])(device, control));
     }
     error(error, ...extra) {
         if (typeof error === 'string') {
@@ -996,7 +847,7 @@ class AppComponent {
         }
         console.log(data);
     }
-    stringUpdateSavedController(controller, newData) {
+    stringUpdateSavedController(_controller, newData) {
         this.savedController = JSON.parse(newData);
         this.saveController(this.savedController);
     }
@@ -1009,7 +860,7 @@ class AppComponent {
         item.ignoreBits.splice(ignoreIndex, 1);
     }
     downloadController(controller) {
-        const filename = Object(_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getDeviceLabel"])(controller.meta) + '.json';
+        const filename = Object(_src_shared_index_utils__WEBPACK_IMPORTED_MODULE_4__["getDeviceLabel"])(controller.meta) + '.json';
         const data = JSON.stringify(controller, null, 2);
         Object(_app_utils__WEBPACK_IMPORTED_MODULE_7__["download"])(filename, data);
     }
@@ -1214,18 +1065,207 @@ const relayOff = [
 
 /***/ }),
 
-/***/ "stIS":
-/*!**************************************!*\
-  !*** ../shared/delayLog.function.ts ***!
-  \**************************************/
-/*! exports provided: default */
+/***/ "neOj":
+/*!************************************!*\
+  !*** ../src/shared/index.utils.ts ***!
+  \************************************/
+/*! exports provided: getControlConfigByDevice, savedControllerToConfigs, isDeviceEventsSame, eventsMatch, cleanseDeviceEvent, devicesMatch, isDeviceController, getDeviceLabel, sumSets */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return delayLog; });
-function delayLog(...args) {
-    setTimeout(() => console.log(...args), 300);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getControlConfigByDevice", function() { return getControlConfigByDevice; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "savedControllerToConfigs", function() { return savedControllerToConfigs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDeviceEventsSame", function() { return isDeviceEventsSame; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "eventsMatch", function() { return eventsMatch; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cleanseDeviceEvent", function() { return cleanseDeviceEvent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "devicesMatch", function() { return devicesMatch; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDeviceController", function() { return isDeviceController; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDeviceLabel", function() { return getDeviceLabel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sumSets", function() { return sumSets; });
+/** Files in here must be browser safe */
+function getControlConfigByDevice(configs, device) {
+    const vendorId = String(device.vendorId);
+    const productId = String(device.productId);
+    const products = configs[vendorId];
+    if (!products) {
+        return;
+    }
+    return products[productId];
+}
+function savedControllerToConfigs(controller, controlConfigs = {}) {
+    const { vendorId, productId } = controller.meta;
+    const vendorOb = controlConfigs[vendorId] = controlConfigs[vendorId] || {};
+    vendorOb[productId] = controller;
+    return controlConfigs;
+}
+function isDeviceEventsSame(device, event0, event1) {
+    const castedEvent0 = cleanseDeviceEvent(device, event0);
+    const castedEvent1 = cleanseDeviceEvent(device, event1);
+    return eventsMatch(castedEvent0, castedEvent1);
+}
+function eventsMatch(event0, event1) {
+    return event0.every((item, index) => item === event1[index]);
+}
+function cleanseDeviceEvent(device, event) {
+    return event.map((number, index) => cleanseDeviceEventPos(device, number, index));
+}
+function cleanseDeviceEventPos(device, number, index) {
+    var _a;
+    return ((_a = device.ignoreBits) === null || _a === void 0 ? void 0 : _a.includes(index)) ? 0 : number;
+}
+function devicesMatch(device, lDevice) {
+    return device === lDevice || device.productId === lDevice.productId && device.vendorId === lDevice.vendorId;
+}
+function isDeviceController(device) {
+    if ((device.usage === 5 && device.usagePage === 1)
+        || (device.usage === 4 && device.usagePage === 1)) {
+        return true;
+    }
+    if (!device.product) {
+        return false;
+    }
+    return device.product.toLowerCase().indexOf("controller") >= 0
+        || device.product.toLowerCase().indexOf("game") >= 0
+        || device.product.toLowerCase().indexOf("joystick") >= 0;
+}
+function getDeviceLabel(device) {
+    var _a;
+    let stringRef = ((_a = device.product) === null || _a === void 0 ? void 0 : _a.trim()) || '';
+    if (device.manufacturer) {
+        stringRef += ' by ' + device.manufacturer;
+    }
+    return stringRef;
+}
+function sumSets(numsToSum) {
+    var sums = []; // every possible sum
+    var sets = []; // each index matches sums
+    function SubSets(read, // starts with no values
+    queued // starts with all values
+    ) {
+        if (read.length) {
+            var total = read.reduce((a, b) => a + b, 0);
+            sums.push(total); // record result of combing
+            sets.push(read.slice()); // clone read array
+        }
+        if (read.length > 1) {
+            SubSets(read.slice(1, read.length), []);
+        }
+        if (queued.length === 0) {
+            return;
+        }
+        const next = queued[0];
+        const left = queued.slice(1);
+        SubSets(read.concat(next), left); // move one over at a time
+    }
+    // igniter
+    SubSets([], numsToSum);
+    return { sums, sets };
+}
+
+
+/***/ }),
+
+/***/ "oCL0":
+/*!**************************************************************!*\
+  !*** ../src/shared/decodeControllerButtonStates.function.ts ***!
+  \**************************************************************/
+/*! exports provided: default, decodeDeviceMetaState, getSamePosButtons, findButtonCombo */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decodeDeviceMetaState", function() { return decodeDeviceMetaState; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSamePosButtons", function() { return getSamePosButtons; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "findButtonCombo", function() { return findButtonCombo; });
+/* harmony import */ var _index_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.utils */ "neOj");
+
+/* harmony default export */ __webpack_exports__["default"] = (decodeDeviceMetaState);
+/** runtime decode button presses
+ * - Todo: More performance using a map of all possible presses instead of using this
+*/
+function decodeDeviceMetaState(metaState, event // 8 bits
+) {
+    if (!metaState.map || !event) {
+        return [];
+    }
+    const changedMap = getButtonMapByEvent(metaState.map, event);
+    return Object.keys(changedMap).filter((buttonName) => {
+        const current = changedMap[buttonName];
+        const currentPos = current.pos;
+        const seekValue = event[currentPos];
+        // does another matching position have an exact match?
+        const otherHasExact = Object.values(changedMap)
+            .find(btnMap => btnMap.pos === currentPos && btnMap !== current && btnMap.value === seekValue);
+        if (otherHasExact) {
+            return false;
+        }
+        // direct value match
+        if (current.value === seekValue) {
+            return true;
+        }
+        // items on the same pos
+        const alikes = getSamePosButtons(buttonName, changedMap);
+        // combined value match
+        const match = findButtonCombo(alikes, current, { changedMap, seekValue });
+        if (match) {
+            return true;
+        }
+        return false;
+    });
+}
+function getSamePosButtons(buttonName, changedMap) {
+    return Object.keys(changedMap)
+        .filter(otherBtnName => {
+        if (otherBtnName === buttonName) {
+            return false;
+        }
+        if (changedMap[otherBtnName].pos !== changedMap[buttonName].pos) {
+            return false;
+        }
+        return true;
+    });
+}
+/** determines if multiple button pressed  */
+function findButtonCombo(alikes, // two or more button names
+current, { changedMap, seekValue }) {
+    if (!alikes.length) {
+        return false;
+    }
+    const x = [current.value];
+    alikes.forEach(name => {
+        x.push(changedMap[name].value - current.idle);
+    });
+    const results = Object(_index_utils__WEBPACK_IMPORTED_MODULE_0__["sumSets"])(x); // get every possible combination
+    return results.sets.find((items, index) => {
+        /*if (!items) {
+          console.log('results', results)
+          return false
+        }*/
+        // remove all singular possible combinations
+        if (items.length === 1) {
+            const isTheCurrentOne = items[0] === current.value || items[0] === current.value + current.idle;
+            if (!isTheCurrentOne) {
+                return false;
+            }
+        }
+        // possible set must include current value
+        if (!items.includes(current.value)) {
+            return false;
+        }
+        if (seekValue === results.sums[index]) {
+            return true;
+        }
+    }) !== undefined;
+}
+function getButtonMapByEvent(map, currentBits // length === 8
+) {
+    return currentBits.reduce((all, current, index) => {
+        Object.keys(map)
+            .filter((buttonName) => map[buttonName].pos === index && map[buttonName].idle !== current)
+            .forEach((buttonName) => all[buttonName] = map[buttonName]);
+        return all;
+    }, {});
 }
 
 

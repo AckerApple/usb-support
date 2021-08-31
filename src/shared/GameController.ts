@@ -5,12 +5,12 @@ import GameControlEvents from './GameControlEvents';
 export interface IDevice {
   sendFeatureReport: (command: any[]) => any
   readSync: () => number[];
-  read: (callback: (err, value: number[]) => any) => void
+  read: (callback: (err: Error, value: number[]) => any) => void
   listenerCount: () => number
   eventNames: () => string[]
-  addListener: (eventName: string, callback: (...args) => any) => any
+  addListener: (eventName: string, callback: (...args: any[]) => any) => any
   removeAllListeners: () => any;
-  removeListener: (eventType: string, listener: (...args) => any) => any
+  removeListener: (eventType: string, listener: (...args: any[]) => any) => any
   resume: () => any;
   pause: () => any;
   on: (type: string, data: any) => any
@@ -23,20 +23,20 @@ export interface ISubscriber {
 
 export class GameController extends GameControlEvents {
   // events: any
-  device: IDevice;
+  device?: HID.HID;
   $data: Subject<number[]> = new Subject()
-  listener: (data: number[]) => any
+  listener?: (data: number[]) => any
   private subs = new Subscription()
   $error = new Subject()
 
   // device can be asked for state versus always reporting its state
   allowsInterfacing() {
-    return this.meta.interface === 0 ? false : true;
+    return this.meta?.interface === 0 ? false : true;
   }
 
   onNextChangeHold(callback: () => any, timeMs: number = 2000) {
     const startState = this.lastData;
-    let timeout;
+    let timeout: any;
 
     const listener = () => {
       if (timeout != undefined) {
@@ -68,7 +68,7 @@ export class GameController extends GameControlEvents {
     )
   }
 
-  onNextIdle(callback: (err: Error, value: GameController) => any) {
+  onNextIdle(callback: (err: Error | null, value: GameController) => any) {
     if (this.isIdle) {
       return callback(null, this);
     }
@@ -111,10 +111,10 @@ export class GameController extends GameControlEvents {
 
     this.paramDeviceConnect()
 
-    const onNewData = (data) => {
+    const onNewData = (data: any) => {
       this.onNewData(data)
     }
-    const callback = whenCallbackChanges(onNewData, (a) => a.toString());
+    const callback = whenCallbackChanges(onNewData, (a: any) => a.toString());
 
     this.listener = (data: number[]) => {
       this.lastData = data;
@@ -129,7 +129,7 @@ export class GameController extends GameControlEvents {
     return this;
   }
 
-  tryConnection() {
+  tryConnection(): HID.HID | undefined {
     try {
       // console.log('connecting by path', this.meta.path)
       const device = new HID.HID(this.meta.path);
@@ -141,7 +141,7 @@ export class GameController extends GameControlEvents {
     }
   }
 
-  tryVendorProductConnection() {
+  tryVendorProductConnection(): HID.HID | undefined {
     try {
       // console.log('connecting by ids', this.meta.vendorId, this.meta.productId)
       const device = new HID.HID(this.meta.vendorId, this.meta.productId)
@@ -182,13 +182,13 @@ export class GameController extends GameControlEvents {
         rej(new Error(`Could not map idle state of ${this.meta.product} in timely fashion`))
       }, 1000);
 
-      const dataReader = (data) => {
+      const dataReader = (data: any) => {
         clearTimeout(timeout);
         this.idle = data;
         res(this);
       };
 
-      this.device.read((err, data) => {
+      this.device?.read((err, data) => {
         if (err) {
           rej(new Error(`Could not map idle state of ${this.meta.product} due to ${err.message}`))
           return;
@@ -231,8 +231,8 @@ export class GameController extends GameControlEvents {
     max: number
   }[] = []
 
-  axisDataDiscoverer(data) {
-    data.forEach((pinValue, pin) => {
+  axisDataDiscoverer(data: any) {
+    data.forEach((pinValue: any, pin: number) => {
       for (let mPinIndex = this.tempAxisMemoryArray.length - 1; mPinIndex >= 0; --mPinIndex) {
         const pinMemory = this.tempAxisMemoryArray[mPinIndex];
 
@@ -273,7 +273,7 @@ export class GameController extends GameControlEvents {
 
   write(command: any[]) {
     console.log('this.meta', this.meta)
-    const device = this.paramDeviceConnect()
+    const device = this.paramDeviceConnect() as HID.HID
 
     try {
       console.log('sending command', command)
@@ -284,14 +284,14 @@ export class GameController extends GameControlEvents {
   }
 }
 
-function whenCallbackChanges(callback, eachArgument) {
+function whenCallbackChanges(callback: any, eachArgument: any) {
   let args: any = [];
 
-  return function (...allArguments) {
+  return function (this:any, ...allArguments: any[]) {
     if (arguments.length !== args.length) {
       callback.apply(this, arguments);
     } else {
-      eachArgument = eachArgument || function (a) { return a };
+      eachArgument = eachArgument || function (a: any) { return a };
       for (let index = arguments.length - 1; index >= 0; --index) {
         const newValue = eachArgument(arguments[index]);
         const oldValue = eachArgument(args[index]);

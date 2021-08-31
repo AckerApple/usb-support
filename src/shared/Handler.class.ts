@@ -19,12 +19,12 @@ export class HandlerClass {
   listDevices = listDevices
 
   constructor(
-    public controllerConfigs?: ControllerConfigs,
-    public listeners?: GameController[],
+    public controllerConfigs: ControllerConfigs,
+    public listeners: GameController[],
   ) {}
 
   getControllerHandler(device: IDeviceMeta, gameController: GameController) {
-    const config: DeviceProductLayout = getControlConfigByDevice(this.controllerConfigs, device)
+    const config = getControlConfigByDevice(this.controllerConfigs, device) as DeviceProductLayout
     return new ControllerHandler(config, gameController)
   }
 
@@ -161,7 +161,7 @@ export function getControlHander(config: DeviceProductLayout) {
 }
 
 export class ControllerHandler {
-  lastEvent: number[]
+  lastEvent?: number[]
   deviceEvent: Subject<number[]> = new Subject()
   subs: Subscription = new Subscription()
 

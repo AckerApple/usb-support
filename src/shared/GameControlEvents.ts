@@ -4,10 +4,10 @@ import { Subject } from 'rxjs';
 
 export class GameControlEvents {
   lastData: number[] = []
-  meta: IDeviceMeta
-  changedAt: number // last button
+  meta!: IDeviceMeta
+  changedAt?: number // last button
   idle: number[] = []
-  isIdle: boolean
+  isIdle?: boolean
 
   // events: EventEmitter = new EventEmitter(); // change, idle, notIdle
   $idle: Subject<void> = new Subject()
@@ -28,7 +28,7 @@ export class GameControlEvents {
   onNewData(data: number[]) {
     this.changedAt = Date.now();
 
-    if (this.idle.length || this.meta.interface == -1) {
+    if (this.idle.length || this.meta?.interface == -1) {
       this.isIdle = this.determineIdleStateBy(data);
 
       if (this.isIdle) {
@@ -48,7 +48,7 @@ export class GameControlEvents {
 
   // returns which bit buckets do not match
   determineIdleStateBy(data: number[]): boolean {
-    if (this.meta.interface == -1) {
+    if (this.meta?.interface == -1) {
       return this.determineInterfaceIdleState();
     }
 

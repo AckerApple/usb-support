@@ -1,14 +1,15 @@
 import { Component } from '@angular/core'
-import { DeviceProductLayout, ControllerConfigs, WssMessage, IDeviceMeta } from '../../../shared/typings'
-import { SocketMessageType } from '../../../shared/enums'
-import GameControlEvents from '../../../shared/GameControlEvents'
+import { DeviceProductLayout, ControllerConfigs, WssMessage, IDeviceMeta } from '../../../src/shared/typings'
+import { SocketMessageType } from '../../../src/shared/enums'
+import GameControlEvents from '../../../src/shared/GameControlEvents'
 import mapController from './mapController.function'
-import { socketPort } from '../../../shared/config.json'
+import { socketPort } from '../../../src/shared/config.json'
 import { relayOn, relayOff } from './relayPositions'
-import { getDeviceLabel, getControlConfigByDevice, eventsMatch, devicesMatch, isDeviceController } from '../../../shared/index.utils'
-import decodeDeviceMetaState from '../../../shared/decodeControllerButtonStates.function'
+import { getDeviceLabel, getControlConfigByDevice, eventsMatch, devicesMatch, isDeviceController } from '../../../src/shared/index.utils'
+import decodeDeviceMetaState from '../../../src/shared/decodeControllerButtonStates.function'
 import { ack } from 'ack-x/js/ack'
 import { copyText, DebugData, download, IDeviceMetaState, testController } from './app.utils'
+import { Device } from 'node-hid'
 
 const socketHost = window.location.hostname
 
@@ -21,7 +22,7 @@ export class AppComponent {
   title = 'webapp'
   wsUrl = `ws://${socketHost}:${socketPort}`
   connection: WebSocket
-  reconnectInterval: number
+  reconnectInterval: any
 
   command = '0x00, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00'
   relayOn = relayOn
@@ -134,8 +135,8 @@ export class AppComponent {
     })
 
     const devices = this.devices.map(device => device.meta)
-    this.controllers = devices.filter(device => isDeviceController(device))
-    this.nonControllers = devices.filter(device => !isDeviceController(device))
+    this.controllers = devices.filter(device => isDeviceController(device as Device))
+    this.nonControllers = devices.filter(device => !isDeviceController(device as Device))
 
     this.log('controllers', this.controllers)
     this.log('other devices', this.nonControllers)
@@ -437,7 +438,7 @@ export class AppComponent {
     console.log(data)
   }
 
-  stringUpdateSavedController(controller: DeviceProductLayout, newData: string) {
+  stringUpdateSavedController(_controller: DeviceProductLayout, newData: string) {
     this.savedController = JSON.parse(newData)
     this.saveController(this.savedController)
   }

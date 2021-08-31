@@ -1,5 +1,6 @@
 /** Files in here must be browser safe */
 
+import { Device, HID } from "node-hid";
 import { ControllerConfigs, DeviceProductLayout, IDeviceMeta } from "./typings";
 
 export function getControlConfigByDevice(configs: ControllerConfigs, device: IDeviceMeta) {
@@ -59,12 +60,19 @@ export function devicesMatch(device: IDeviceMeta, lDevice: IDeviceMeta): boolean
   return device === lDevice || device.productId === lDevice.productId && device.vendorId === lDevice.vendorId
 }
 
-export function isDeviceController(device: IDeviceMeta): boolean {
-  return (device.usage === 5 && device.usagePage === 1)
-  || (device.usage === 4 && device.usagePage === 1)
-  || device.product.toLowerCase().indexOf("controller") >= 0
+export function isDeviceController(device: Device): boolean {
+  if ((device.usage === 5 && device.usagePage === 1)
+  || (device.usage === 4 && device.usagePage === 1)) {
+    return true
+  }
+
+  if (!device.product) {
+    return false
+  }
+
+  return device.product.toLowerCase().indexOf("controller") >= 0
   || device.product.toLowerCase().indexOf("game") >= 0
-  || device.product.toLowerCase().indexOf("joystick") >= 0;
+  || device.product.toLowerCase().indexOf("joystick") >= 0
 }
 
 export function getDeviceLabel(device: IDeviceMeta) {
@@ -75,4 +83,39 @@ export function getDeviceLabel(device: IDeviceMeta) {
   }
 
   return stringRef
+}
+
+export function sumSets(
+  numsToSum: number[]
+): {sums: number[], sets: number[][]} {
+  var sums: number[] = [] // every possible sum
+  var sets: number[][] = [] // each index matches sums
+
+  function SubSets(
+    read: number[], // starts with no values
+    queued: number[] // starts with all values
+  ) {
+    if (read.length) {
+      var total = read.reduce((a,b) => a +b, 0);
+      sums.push(total) // record result of combing
+      sets.push(read.slice()) // clone read array
+    }
+
+    if (read.length > 1) {
+      SubSets(read.slice(1, read.length), [])
+    }
+
+    if (queued.length === 0) {
+      return
+    }
+
+    const next = queued[0]
+    const left = queued.slice(1)
+    SubSets(read.concat(next), left) // move one over at a time
+  }
+
+  // igniter
+  SubSets([], numsToSum)
+
+  return {sums, sets}
 }

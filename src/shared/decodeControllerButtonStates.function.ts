@@ -1,15 +1,17 @@
+import { sumSets } from './index.utils'
 import { ButtonsMap, DeviceProductLayout, IButtonState } from './typings'
 
 export default decodeDeviceMetaState
 
+/** runtime decode button presses
+ * - Todo: More performance using a map of all possible presses instead of using this
+*/
 export function decodeDeviceMetaState(
   metaState: DeviceProductLayout,
   event: number[] // 8 bits
 ): string[] {
-  const pressedButtons = []
-
   if (!metaState.map || !event) {
-    return pressedButtons
+    return []
   }
 
   const changedMap: ButtonStates = getButtonMapByEvent(metaState.map, event)
@@ -32,18 +34,7 @@ export function decodeDeviceMetaState(
     }
 
     // items on the same pos
-    const alikes = Object.keys(changedMap)
-    .filter(otherBtnName => {
-      if (otherBtnName === buttonName) {
-        return false
-      }
-
-      if (changedMap[otherBtnName].pos !== current.pos) {
-        return false
-      }
-
-      return true
-    })
+    const alikes = getSamePosButtons(buttonName, changedMap)
 
     // combined value match
     const match = findButtonCombo(alikes, current, {changedMap, seekValue})
@@ -56,13 +47,28 @@ export function decodeDeviceMetaState(
   })
 }
 
-function findButtonCombo(
-  alikes: string[],
+export function getSamePosButtons(buttonName: string, changedMap: ButtonStates) {
+  return Object.keys(changedMap)
+  .filter(otherBtnName => {
+    if (otherBtnName === buttonName) {
+      return false
+    }
+
+    if (changedMap[otherBtnName].pos !== changedMap[buttonName].pos) {
+      return false
+    }
+
+    return true
+  })
+}
+
+/** determines if multiple button pressed  */
+export function findButtonCombo(
+  alikes: string[], // two or more button names
   current: IButtonState,
-  {changedMap, seekValue, alreadytried = []}: {
+  {changedMap, seekValue}: {
     changedMap: {[buttonName: string]: IButtonState}
     seekValue: number
-    alreadytried?: string[]
   }
 ): boolean {
   if (!alikes.length) {
@@ -75,8 +81,31 @@ function findButtonCombo(
     x.push( changedMap[name].value - current.idle )
   })
 
-  const results = sumSets(x)
-  return results.sums.includes(seekValue)
+  const results = sumSets(x) // get every possible combination
+
+  return results.sets.find((items, index) => {
+    /*if (!items) {
+      console.log('results', results)
+      return false
+    }*/
+
+    // remove all singular possible combinations
+    if (items.length === 1) {
+      const isTheCurrentOne = items[0] === current.value || items[0] === current.value + current.idle
+      if (!isTheCurrentOne) {
+        return false
+      }
+    }
+
+    // possible set must include current value
+    if (!items.includes(current.value)) {
+      return false
+    }
+
+    if (seekValue === results.sums[index]) {
+      return true
+    }
+  }) !== undefined
 }
 
 interface ButtonStates {
@@ -85,39 +114,15 @@ interface ButtonStates {
 
 function getButtonMapByEvent(
   map: ButtonsMap,
-  currentBits: number[] // 8
+  currentBits: number[] // length === 8
 ): ButtonStates {
   return currentBits.reduce((all, current, index) => {
     Object.keys(map)
       .filter((buttonName) =>
         map[buttonName].pos === index && map[buttonName].idle !== current
       )
-      .forEach(buttonName => all[buttonName] = map[buttonName])
+      .forEach((buttonName: string) => all[buttonName] = map[buttonName])
 
       return all
-  }, {})
-}
-
-function sumSets(x: number[]): {sums: number[], sets: number[][]} {
-  var sums: number[] = [];
-  var sets: number[][] = [];
-
-  function SubSets(read, queued){
-   if( read.length == 4 || (read.length <= 4 && queued.length == 0) ){
-    if( read.length > 0 ){
-     var total = read.reduce(function(a,b){return a+b;},0);
-     if(sums.indexOf(total)==-1){
-      sums.push(total);
-      sets.push(read.slice().sort());
-     }
-    }
-   }else{
-    SubSets(read.concat(queued[0]),queued.slice(1));
-    SubSets(read,queued.slice(1));
-   }
-  }
-
-  SubSets([],x)
-
-  return {sums, sets}
+  }, {} as ButtonStates)
 }

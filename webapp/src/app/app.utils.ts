@@ -1,9 +1,10 @@
-import { DeviceProductLayout, IDeviceMeta } from '../../../shared/typings'
+import { DeviceProductLayout, IDeviceMeta } from '../../../src/shared/typings'
 
 export interface IDeviceMetaState extends DeviceProductLayout {
   subscribed?: boolean
   recording?: boolean
   lastEvent?: number[]
+  ignoreBits?: number[]
   pressed?: string[] // populated if matched to savedController
 }
 

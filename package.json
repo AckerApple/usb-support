@@ -1,17 +1,18 @@
 {
   "name": "usb-support",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "",
   "main": "/dist/index.js",
   "typings": "/dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "npm run test -- --watch",
     "start": "npm-run-all --parallel start:webapp start:server",
     "watch": "npm-run-all --parallel start:webapp:ng start:server:watch",
     "start:ssl": "npm-run-all --parallel start:webapp:ssl start:server:ssl",
     "start:cli": "ts-node cli",
-    "start:server": "nodemon --watch 'server/**/*.ts' --ignore 'server/**/*.spec.ts' --exec 'ts-node' server/server.start.ts",
-    "start:server:watch": "ts-node-dev server/server.start.ts --watch",
+    "start:server": "nodemon --watch 'src/server/**/*.ts' --ignore 'src/server/**/*.spec.ts' --exec 'ts-node' src/server/server.start.ts",
+    "start:server:watch": "ts-node-dev src/server/server.start.ts --watch",
     "start:server:ssl": "npm run start:server -- --ssl",
     "start:webapp": "ack-reload --dir ./webapp/dist/webapp --host 0.0.0.0 --port 4200",
     "start:webapp:ng": "cd webapp && npm run start",
@@ -36,10 +37,14 @@
     "ws": "^7.4.5"
   },
   "devDependencies": {
-    "npm-run-all": "^4.1.5",
-    "nodemon": "^2.0.7",
-    "ts-node": "^9.1.1",
+    "@types/jest": "^27.0.1",
     "@types/node": "^14.14.41",
+    "@types/node-hid": "^1.3.1",
+    "jest": "^27.1.0",
+    "nodemon": "^2.0.7",
+    "npm-run-all": "^4.1.5",
+    "ts-jest": "^27.0.5",
+    "ts-node": "^9.1.1",
     "ts-node-dev": "^1.1.6",
     "typescript": "^4.1.3"
   }
