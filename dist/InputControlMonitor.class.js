@@ -47,7 +47,7 @@ var InputControlMonitor = /** @class */ (function () {
             // this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
             var bitKey = deviceEvent.join(' ');
             var pressed = possibleButtons[bitKey];
-            _this.lastPressed = __spreadArray([], pressed, true); // clone incase others alter whats return (performance hit)
+            _this.lastPressed = __spreadArray([], (pressed || []), true); // clone incase others alter whats return (performance hit)
             _this.$change.next(_this.lastPressed);
         }));
         this.subs.add(controller.subscribe());

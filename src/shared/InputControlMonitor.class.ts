@@ -45,7 +45,7 @@ export class InputControlMonitor {
 
         const bitKey = deviceEvent.join(' ')
         const pressed = possibleButtons[bitKey]
-        this.lastPressed = [...pressed] // clone incase others alter whats return (performance hit)
+        this.lastPressed = [...(pressed || [])] // clone incase others alter whats return (performance hit)
         this.$change.next(this.lastPressed)
       })
     )
