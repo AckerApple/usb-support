@@ -1,4 +1,13 @@
 "use strict";
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 exports.__esModule = true;
 exports.InputControlMonitor = void 0;
 var rxjs_1 = require("rxjs");
@@ -37,7 +46,8 @@ var InputControlMonitor = /** @class */ (function () {
             // todo: use a map to decode instead of runtime
             // this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
             var bitKey = deviceEvent.join(' ');
-            _this.lastPressed = possibleButtons[bitKey];
+            var pressed = possibleButtons[bitKey];
+            _this.lastPressed = __spreadArray([], pressed, true); // clone incase others alter whats return (performance hit)
             _this.$change.next(_this.lastPressed);
         }));
         this.subs.add(controller.subscribe());

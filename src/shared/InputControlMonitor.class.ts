@@ -44,8 +44,8 @@ export class InputControlMonitor {
         // this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
 
         const bitKey = deviceEvent.join(' ')
-        this.lastPressed = possibleButtons[bitKey]
-
+        const pressed = possibleButtons[bitKey]
+        this.lastPressed = [...pressed] // clone incase others alter whats return (performance hit)
         this.$change.next(this.lastPressed)
       })
     )
