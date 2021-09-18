@@ -15,7 +15,8 @@ var index_1 = require("./index");
 var index_utils_1 = require("./index.utils");
 var InputControlMonitor = /** @class */ (function () {
     function InputControlMonitor() {
-        this.$change = new rxjs_1.Subject();
+        this.$change = new rxjs_1.Subject(); // pressed
+        this.$unpresses = new rxjs_1.Subject(); // buttons detected as having been released
         this.subs = new rxjs_1.Subscription();
         this.lastPressed = [];
         this.controllers = []; // maybe unused
@@ -47,6 +48,13 @@ var InputControlMonitor = /** @class */ (function () {
             // this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
             var bitKey = deviceEvent.join(' ');
             var pressed = possibleButtons[bitKey];
+            /* no longer pressed detection (performance gain instead of listening to $change and un-pressing every call) */
+            var unpressed = _this.lastPressed
+                .filter(function (oldPress) { return !pressed.includes(oldPress); });
+            if (unpressed.length) {
+                _this.$unpresses.next(unpressed);
+            }
+            /* end */
             _this.lastPressed = __spreadArray([], (pressed || []), true); // clone incase others alter whats return (performance hit)
             _this.$change.next(_this.lastPressed);
         }));

@@ -5,7 +5,9 @@ import { DeviceProductLayout } from './typings';
 import { getPressMapByController, sumSets } from './index.utils';
 
 export class InputControlMonitor {
-  $change: Subject<string[]> = new Subject()
+  $change: Subject<string[]> = new Subject() // pressed
+  $unpresses: Subject<string[]> = new Subject() // buttons detected as having been released
+
   subs = new Subscription()
   lastPressed: string[] = []
   controllers: ControllerHandler[] = [] // maybe unused
@@ -42,9 +44,18 @@ export class InputControlMonitor {
       controller.deviceEvent.subscribe(deviceEvent => {
         // todo: use a map to decode instead of runtime
         // this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
-
         const bitKey = deviceEvent.join(' ')
         const pressed = possibleButtons[bitKey]
+
+        /* no longer pressed detection (performance gain instead of listening to $change and un-pressing every call) */
+          const unpressed = this.lastPressed
+            .filter(oldPress => !pressed.includes(oldPress))
+
+          if (unpressed.length) {
+            this.$unpresses.next(unpressed)
+          }
+        /* end */
+
         this.lastPressed = [...(pressed || [])] // clone incase others alter whats return (performance hit)
         this.$change.next(this.lastPressed)
       })
