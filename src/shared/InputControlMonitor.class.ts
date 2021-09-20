@@ -1,12 +1,13 @@
 import { Subscription, Subject } from 'rxjs';
-import { decodeDeviceMetaState, getControlHander } from './index'
+import { getControlHander } from './index'
 import { ControllerHandler } from './Handler.class';
 import { DeviceProductLayout } from './typings';
 import { getPressMapByController, sumSets } from './index.utils';
 
 export class InputControlMonitor {
   $change: Subject<string[]> = new Subject() // pressed
-  $unpresses: Subject<string[]> = new Subject() // buttons detected as having been released
+  $unpressed: Subject<string[]> = new Subject() // buttons detected as having been released
+  $pressed: Subject<string[]> = new Subject() // buttons detected as having been pressed in
 
   subs = new Subscription()
   lastPressed: string[] = []
@@ -49,11 +50,20 @@ export class InputControlMonitor {
 
         /* no longer pressed detection (performance gain instead of listening to $change and un-pressing every call) */
           const unpressed = this.lastPressed
-            .filter(oldPress => !pressed.includes(oldPress))
+            .filter(press => !pressed.includes(press))
 
           if (unpressed.length) {
-            this.$unpresses.next(unpressed)
+            this.$unpressed.next(unpressed)
           }
+        /* end */
+
+        /* newly pressed */
+          const presses = pressed
+            .filter(press => !this.lastPressed.includes(press))
+
+            if (presses.length) {
+              this.$pressed.next(presses)
+            }
         /* end */
 
         this.lastPressed = [...(pressed || [])] // clone incase others alter whats return (performance hit)

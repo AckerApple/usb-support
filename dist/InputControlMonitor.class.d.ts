@@ -3,7 +3,8 @@ import { ControllerHandler } from './Handler.class';
 import { DeviceProductLayout } from './typings';
 export declare class InputControlMonitor {
     $change: Subject<string[]>;
-    $unpresses: Subject<string[]>;
+    $unpressed: Subject<string[]>;
+    $pressed: Subject<string[]>;
     subs: Subscription;
     lastPressed: string[];
     controllers: ControllerHandler[];
