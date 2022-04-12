@@ -2,7 +2,7 @@ import { ControllerConfigs, DeviceProductLayout, IDeviceMeta, WssMessage } from 
 import { SocketMessageType } from "../shared/enums"
 import * as controllers from '../../controllers.json'
 import { HandlerClass } from "../shared/Handler.class"
-import { ack } from 'ack-x/js/ack'
+import { ackExpose as ack } from 'ack-x/js/ack'
 import * as WebSocket from 'ws'
 import { scope } from './server.start'
 import * as path from 'path'
@@ -24,15 +24,21 @@ export default class WsHandler extends HandlerClass {
       this.error.subscribe(err =>
         this.send(SocketMessageType.ERROR, ack.error(err).toObject())
       )
-    ).add(
+    )
+    
+    this.subs.add(
       this.deviceEvent.subscribe(data =>
         this.send(SocketMessageType.DEVICEEVENT_CHANGE, {device: data.device, event: data.event})
       )
-    ).add(
+    )
+
+    this.subs.add(
       this.deviceUnsubscribed.subscribe(() =>
         this.emitListeners()
       )
-    ).add(
+    )
+    
+    this.subs.add(
       this.deviceListenActive.subscribe(() =>
         this.emitListeners()
       )
