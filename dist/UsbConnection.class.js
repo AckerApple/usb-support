@@ -34,7 +34,7 @@ var UsbConnection = /** @class */ (function (_super) {
         _this.startUsbMonitoring();
         return _this;
     }
-    /** Be informed of USB device changes */
+    /** Be informed of USB device availability changes */
     UsbConnection.prototype.startUsbMonitoring = function () {
         var _this = this;
         // officially turns on monitoring
@@ -89,6 +89,7 @@ var UsbConnection = /** @class */ (function (_super) {
     UsbConnection.prototype.getDeviceName = function () {
         return (0, index_utils_1.getDeviceLabel)(this.controllerConfig.meta);
     };
+    // first to know we have connected
     UsbConnection.prototype.usbConnect = function () {
         if (this.monitor.controllers.length) {
             this.monitor.reset();

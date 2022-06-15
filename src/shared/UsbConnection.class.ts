@@ -21,7 +21,7 @@ export class UsbConnection extends Connection {
     this.startUsbMonitoring()
   }
 
-  /** Be informed of USB device changes */
+  /** Be informed of USB device availability changes */
   startUsbMonitoring() {
     // officially turns on monitoring
     usbDetect.startMonitoring()
@@ -84,6 +84,7 @@ export class UsbConnection extends Connection {
     return getDeviceLabel(this.controllerConfig.meta)
   }
 
+  // first to know we have connected
   usbConnect() {
     if (this.monitor.controllers.length) {
       this.monitor.reset()

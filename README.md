@@ -1,3 +1,15 @@
+## Install
+
+```
+npm install git+https://github.com/ackerapple/usb-support.git usb-detection node-hid
+```
+
+## Development Install
+```
+npm install usb-detection node-hid --no-save && npm install
+```
+
+
 To get node-hid on Raspbian, I needed
 
 ```
@@ -17,6 +29,7 @@ To control usb devices without using `sudo`:
 
 - Goto the directory `/etc/udev/rules.d`
 - Edit a file named `99-com.rules` or create a new file such as `99-hidraw-permissions.rules`
+  - `sudo nano /etc/udev/rules.d/99-com.rules`
   - Add to the top `KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0664", GROUP="plugdev"`
 - Unplug device
 - Run command `sudo udevadm control --reload-rules`

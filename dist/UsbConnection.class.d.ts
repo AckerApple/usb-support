@@ -8,7 +8,7 @@ export declare class UsbConnection extends Connection {
         [index: string]: any;
     };
     constructor(controllerConfig: DeviceProductLayout);
-    /** Be informed of USB device changes */
+    /** Be informed of USB device availability changes */
     startUsbMonitoring(): void;
     close(): void;
     getDeviceName(): string;
