@@ -48,7 +48,7 @@ var InputControlMonitor = /** @class */ (function () {
             // todo: use a map to decode instead of runtime
             // this.lastPressed = decodeDeviceMetaState(controller.config, deviceEvent)
             var bitKey = deviceEvent.join(' ');
-            var pressed = possibleButtons[bitKey] || console.warn("unknown input bitKey " + bitKey);
+            var pressed = possibleButtons[bitKey] || console.warn("unknown input bitKey ".concat(bitKey));
             /* no longer pressed detection (performance gain instead of listening to $change and un-pressing every call) */
             var unpressed = _this.lastPressed
                 .filter(function (press) { return !pressed.includes(press); });

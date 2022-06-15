@@ -182,7 +182,7 @@ var GameController = /** @class */ (function (_super) {
             return device;
         }
         catch (err) {
-            err.message = err.message + ("(vId:" + this.meta.vendorId + " pId:" + this.meta.productId + " " + this.meta.product + ")");
+            err.message = err.message + "(vId:".concat(this.meta.vendorId, " pId:").concat(this.meta.productId, " ").concat(this.meta.product, ")");
             err.tip = 'PROCESS MAY NEED TO RUN AS ROOT USER';
             // console.error("Could not connect to device", err);
             // console.warn(err.tip);
@@ -214,7 +214,7 @@ var GameController = /** @class */ (function (_super) {
                 return [2 /*return*/, new Promise(function (res, rej) {
                         var _a;
                         var timeout = setTimeout(function () {
-                            rej(new Error("Could not map idle state of " + _this.meta.product + " in timely fashion"));
+                            rej(new Error("Could not map idle state of ".concat(_this.meta.product, " in timely fashion")));
                         }, 1000);
                         var dataReader = function (data) {
                             clearTimeout(timeout);
@@ -223,7 +223,7 @@ var GameController = /** @class */ (function (_super) {
                         };
                         (_a = _this.device) === null || _a === void 0 ? void 0 : _a.read(function (err, data) {
                             if (err) {
-                                rej(new Error("Could not map idle state of " + _this.meta.product + " due to " + err.message));
+                                rej(new Error("Could not map idle state of ".concat(_this.meta.product, " due to ").concat(err.message)));
                                 return;
                             }
                             _this.idle = _this.lastData = data;
