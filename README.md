@@ -27,12 +27,19 @@ npm install node-hid
 
 To control usb devices without using `sudo`:
 
+Install prerequisite:
+```
+npm install node-hid --build-from-source --driver=libusb
+```
+
 - Goto the directory `/etc/udev/rules.d`
 - Edit a file named `99-com.rules` or create a new file such as `99-hidraw-permissions.rules`
   - `sudo nano /etc/udev/rules.d/99-com.rules`
-  - Add to the top `KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0664", GROUP="plugdev"`
+  - ~~Add to the top `KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0664", GROUP="plugdev"`~~
+  - Updated: 2022-06-20: `KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0666", GROUP="plugdev"`
 - Unplug device
 - Run command `sudo udevadm control --reload-rules`
+- Run next command `sudo udevadm trigger`
 - Plug device back in
 
 > [allow all rule](https://unix.stackexchange.com/questions/85379/dev-hidraw-read-permissions/85459)
