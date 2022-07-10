@@ -20,6 +20,8 @@ export const testController: IDeviceMeta = {
 }
 
 export interface DebugData {
+  devices?: boolean // reveal debugging for non-controllers
+  controllers?: boolean // reveal debugging for controllers
   state: 'initializing' | 'constructing' | 'constructed' | 'message-received' | 'socket opened'
   messages: number
   url: string

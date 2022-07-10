@@ -22,7 +22,7 @@ export class AppComponent {
   title = 'webapp'
   wsUrl = `ws://${socketHost}:${socketPort}`
   connection: WebSocket
-  reconnectInterval: any
+  reconnectInterval: any = 4000
 
   command = '0x00, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00'
   relayOn = relayOn
@@ -34,7 +34,6 @@ export class AppComponent {
   nonControllers: IDeviceMeta[] = []
   savedControllers: ControllerConfigs = {}
   savedController: DeviceProductLayout // One controller being reviewed
-
 
   debug: DebugData = {
     state: 'initializing',
@@ -68,8 +67,9 @@ export class AppComponent {
 
   connect() {
     this.connection = new WebSocket(this.wsUrl)
-    this.connection.onopen = () => {
+      this.connection.onopen = () => {
       this.log('web socket handshake successful')
+      console.log('this.connection', this.connection)
 
       if (this.reconnectInterval) {
         clearInterval(this.reconnectInterval)
@@ -87,7 +87,6 @@ export class AppComponent {
         }, 3000)
       }
     }
-
 
     this.connection.onerror = (ev: Event): any => {
       this.error(
@@ -138,8 +137,8 @@ export class AppComponent {
     this.controllers = devices.filter(device => isDeviceController(device as Device))
     this.nonControllers = devices.filter(device => !isDeviceController(device as Device))
 
-    this.log('controllers', this.controllers)
-    this.log('other devices', this.nonControllers)
+    this.log('🕹 controllers', this.controllers)
+    this.log('⌨️ other devices', this.nonControllers)
   }
 
   handleMessage(data: WssMessage) {
@@ -151,7 +150,7 @@ export class AppComponent {
       case SocketMessageType.SAVEDCONTROLLERS:
         if (data.data) {
           this.savedControllers = data.data
-          this.log('savedControllers', data.data)
+          this.log('💾 savedControllers', data.data)
         }
         break;
 
@@ -174,15 +173,22 @@ export class AppComponent {
 
   onListeners(devices: IDeviceMeta[]) {
     this.log({message: `listeners update received`, devices})
-
+    console.log('this.listeners ===========>> 0', this.listeners[0])
+    
     this.listeners.length = devices.length
+
+    console.log('this.listeners ===========>> 1', this.listeners[0])
 
     devices.forEach((device,index) => {
       this.listeners[index] = this.listeners[index] || {
         meta: device, subscribed: true, map: {}
       }
+      
+      console.log('this.listeners[index] ------>', this.listeners[index])
 
       const saved = this.getControlConfigByDevice(device)
+
+      console.log('saved ------>', saved)
 
       if (saved) {
         Object.assign(this.listeners[index], saved)
@@ -444,15 +450,19 @@ export class AppComponent {
   }
 
   toggleIgnoreDeviceBit(item: IDeviceMetaState, index: number) {
+    console.log(0, item, index)
     item.ignoreBits = item.ignoreBits || []
-
+    
     const ignoreIndex = item.ignoreBits.indexOf(index)
-
-    if (ignoreIndex===-1) {
-      return item.ignoreBits.push(index)
+    
+    if (ignoreIndex === -1) {
+      item.ignoreBits.push(index)
+      console.log(1, item.ignoreBits)
+      return
     }
-
+    
     item.ignoreBits.splice(ignoreIndex, 1)
+    console.log(2, item.ignoreBits)
   }
 
   downloadController(controller: DeviceProductLayout) {
@@ -463,6 +473,15 @@ export class AppComponent {
 
   copyController(controller: DeviceProductLayout) {
     copyText(JSON.stringify(controller, null, 2))
+  }
+
+  removeKeyFromMap(key: string, map: IDeviceMetaState) {
+    delete map[key]
+  }
+
+  changeMapKeyName(key: string, newKey: string, map: IDeviceMetaState) {
+    map[newKey] = map[key]
+    delete map[key]
   }
 }
 
@@ -475,7 +494,7 @@ function controllerSaveFormat(controller: IDeviceMetaState) {
   return saveData
 }
 
-function hexEncode(string){
+/*function hexEncode(string){
   var hex, i;
 
   var result = "";
@@ -485,4 +504,4 @@ function hexEncode(string){
   }
 
   return result
-}
+}*/

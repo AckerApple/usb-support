@@ -1,16 +1,24 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Webapp</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+  <meta name="apple-mobile-web-app-title" content="App"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script>
-    console.log('loading scripts')
-  </script>
+  <!-- emoji as favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕹</text></svg>"/>
+  <style>
+    * {box-sizing:border-box;line-height:1.5em}
+    html, body{width:100%;height:100%;padding:0;margin:0;font-family: Arial, Helvetica, sans-serif;}
+    html {scroll-behavior:smooth;font-size:calc(22px + .4vw);}
+    input[type="checkbox"], input[type="radio"] {width:1em;height:1em;}
+    textarea, button, input {padding:.5vw;border-radius:.5vw;font-size:.7em;}
+  </style>
 <link rel="stylesheet" href="styles.css"></head>
 <body>
+  <noscript style="color:red">Javascript is required but is turned off on your device</noscript>
   <app-root></app-root>
 <script src="runtime.js" defer></script><script src="polyfills.js" defer></script><script src="vendor.js" defer></script><script src="main.js" defer></script></body>
 </html>

@@ -22,6 +22,13 @@ npm install node-hid
 
 - https://stackoverflow.com/questions/22144527/npm-fail-to-install-node-hid-faild-to-install-last-version-of-nodejs
 
+### Opt-in for performance
+
+[read more here](https://www.npmjs.com/package/ws#opt-in-for-performance)
+
+```
+npm install --save-optional bufferutil utf-8-validate
+```
 
 ### Linux
 
