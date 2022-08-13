@@ -247,6 +247,8 @@ export class AppComponent {
     Object.entries(matchedListener.map).forEach(([key, buttonMap]) => {
       buttonMap.pressed = pressedKeyNames.includes(key)
     })
+
+    ;(document.getElementById('buttonChangeAudio') as any).play()
   }
 
   recordDeviceEvent(matchedListener: IDeviceMetaState) {
@@ -353,24 +355,39 @@ export class AppComponent {
   }
 
   toggleDeviceConnection(device: IDeviceMeta): boolean {
+    const stringRef = getDeviceLabel(device)
     const deviceMatch = this.listeners.find(xDevice => devicesMatch(device, xDevice.meta))
-    if(deviceMatch){
-      delete deviceMatch.subscribed
-      const controller = this.deviceToController(deviceMatch.meta);
-
-      (controller as any).subscribed = false
-
-      console.log('controller --- ', controller);
-      const stringRef = getDeviceLabel(device)
-
+    const controller = this.deviceToController( device );
+    (controller as any).subscribed = !deviceMatch
+    
+    if(!deviceMatch){
       this.log({
-        message: `Unsubscribed from ${stringRef}`
+        message: `🦻 requesting web socket listen to ${stringRef}`
       })
-
-      this.wssSend(SocketMessageType.UNSUBSCRIBEDEVICE, device)
-      return false
+  
+      this.wssSend(SocketMessageType.LISTENTODEVICE, device)
+  
+      if (device === testController) {
+        this.handleMessage({
+          type: SocketMessageType.LISTENERS,
+          data: {
+            devices: this.devices,
+            controllers: this.controllers,
+            event: {message:'test-event'},
+            device
+          }
+        })
+      }
+  
+      return true
     }
-    return true
+
+    this.log({
+      message: `Unsubscribed from ${stringRef}`
+    })
+
+    this.wssSend(SocketMessageType.UNSUBSCRIBEDEVICE, device)
+    return false
   }
 
   listenToDevice(device: IDeviceMeta) {
@@ -378,7 +395,7 @@ export class AppComponent {
     const stringRef = getDeviceLabel(device)
 
     this.log({
-      message: `attempting to listen to ${stringRef}`, device
+      message: `👂 attempting listen to ${stringRef}...`, device
     })
 
     const savedControllers =  Object.values(this.savedControllers).reduce((all, current) => [...all,...Object.values(current)], [])
@@ -391,28 +408,7 @@ export class AppComponent {
     }
 
     // already connected so disconnect?
-    const isConnected = this.toggleDeviceConnection(device)
-    if (!isConnected) {
-      return
-    }
-
-    this.log({
-      message: `requesting web socket to listen to ${stringRef}`
-    })
-
-    this.wssSend(SocketMessageType.LISTENTODEVICE, device)
-
-    if (device === testController) {
-      this.handleMessage({
-        type: SocketMessageType.LISTENERS,
-        data: {
-          devices: this.devices,
-          controllers: this.controllers,
-          event: {message:'test-event'},
-          device
-        }
-      })
-    }
+    this.toggleDeviceConnection(device)
   }
 
   deviceToController(device: IDeviceMeta) {
@@ -444,9 +440,14 @@ export class AppComponent {
     console.log(data)
   }
 
-  stringUpdateSavedController(_controller: DeviceProductLayout, newData: string) {
+  stringUpdateSavedController(newData: string) {
     this.savedController = JSON.parse(newData)
     this.saveController(this.savedController)
+    this.listeners.forEach(listener => {
+      if ( devicesMatch(listener.meta, this.savedController.meta) ) {
+        Object.assign(listener, this.savedController)
+      }
+    })
   }
 
   toggleIgnoreDeviceBit(item: IDeviceMetaState, index: number) {

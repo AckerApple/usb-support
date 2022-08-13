@@ -1,0 +1,318 @@
+{
+  "121": {
+    "6": {
+      "meta": {
+        "vendorId": 121,
+        "productId": 6,
+        "path": "IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/XHC1@14/XHC1@14000000/HS14@14600000/USB2.0 Hub             @14600000/AppleUSB20Hub@14600000/AppleUSB20HubPort@14640000/USB2.0 Hub             @14640000/AppleUSB20Hub@14640000/AppleUSB20HubPort@14643000/USB Joystick          @14643000/IOUSBHostInterface@0/AppleUserUSBHostHIDDevice",
+        "serialNumber": "",
+        "manufacturer": "Microntek             ",
+        "product": "USB Joystick          ",
+        "release": 263,
+        "interface": 0,
+        "usagePage": 1,
+        "usage": 4,
+        "subscribed": true
+      },
+      "map": {
+        "walls": {
+          "pos": 6,
+          "value": 128,
+          "idle": 0,
+          "updatedAt": 1657473734021,
+          "pressed": false
+        },
+        "spinners": {
+          "pos": 6,
+          "value": 64,
+          "idle": 0,
+          "updatedAt": 1657473779790,
+          "pressed": false
+        },
+        "letterD": {
+          "pos": 6,
+          "value": 32,
+          "idle": 0,
+          "updatedAt": 1657473799854,
+          "pressed": false
+        },
+        "letterC": {
+          "pos": 6,
+          "value": 16,
+          "idle": 0,
+          "updatedAt": 1657473831758,
+          "pressed": false
+        },
+        "letterB": {
+          "pos": 6,
+          "value": 8,
+          "idle": 0,
+          "updatedAt": 1657473861965,
+          "pressed": false
+        },
+        "letterA": {
+          "pos": 6,
+          "value": 4,
+          "idle": 0,
+          "updatedAt": 1657473876493,
+          "pressed": false
+        },
+        "leftFlipper": {
+          "pos": 0,
+          "value": 0,
+          "idle": 127,
+          "updatedAt": 1657474700970,
+          "pressed": false
+        },
+        "rightFlipper": {
+          "pos": 0,
+          "value": 255,
+          "idle": 127,
+          "updatedAt": 1657474733569,
+          "pressed": false
+        },
+        "start": {
+          "pos": 1,
+          "value": 255,
+          "idle": 127,
+          "updatedAt": 1657474756697,
+          "pressed": false
+        },
+        "outhole": {
+          "pos": 1,
+          "value": 0,
+          "idle": 127,
+          "updatedAt": 1657474785257,
+          "pressed": false
+        }
+      },
+      "ignoreBits": [
+        2
+      ],
+      "idle": [
+        127,
+        127,
+        0,
+        128,
+        128,
+        15,
+        0,
+        0
+      ]
+    }
+  },
+  "273": {
+    "5143": {
+      "meta": {
+        "vendorId": 273,
+        "productId": 5143,
+        "path": "IOService:/IOResources/IOBluetoothHCIController/AppleBroadcomBluetoothHostController/IOBluetoothDevice/IOBluetoothL2CAPChannel/IOBluetoothHIDDriver",
+        "serialNumber": "28-9a-4b-03-b1-d2",
+        "manufacturer": "Unknown",
+        "product": "SteelSeries Stratus XL",
+        "release": 288,
+        "interface": -1,
+        "usagePage": 1,
+        "usage": 5
+      },
+      "map": {
+        "up": {
+          "pos": 4,
+          "value": 48,
+          "idle": 46,
+          "updatedAt": 1590972138469
+        },
+        "down": {
+          "pos": 4,
+          "value": 114,
+          "idle": 46,
+          "updatedAt": 1590972138499
+        },
+        "left": {
+          "pos": 4,
+          "value": 165,
+          "idle": 46,
+          "updatedAt": 1590972138500
+        },
+        "right": {
+          "pos": 4,
+          "value": 81,
+          "idle": 46,
+          "updatedAt": 1590972138569
+        },
+        "a": {
+          "pos": 4,
+          "value": 0,
+          "idle": 46,
+          "updatedAt": 1590972138595
+        },
+        "b": {
+          "pos": 4,
+          "value": 66,
+          "idle": 46,
+          "updatedAt": 1590972144129
+        },
+        "select": {
+          "pos": 4,
+          "value": 63,
+          "idle": 46,
+          "updatedAt": 1590972144143
+        },
+        "start": {
+          "pos": 4,
+          "value": 69,
+          "idle": 46,
+          "updatedAt": 1590972144150
+        }
+      }
+    }
+  },
+  "1356": {
+    "3290": {
+      "meta": {
+        "vendorId": 1356,
+        "productId": 3290,
+        "path": "/dev/hidraw3",
+        "serialNumber": "",
+        "manufacturer": "Sony Interactive Entertainment",
+        "product": "Controller",
+        "release": 256,
+        "interface": 0
+      },
+      "map": {
+        "up": {
+          "pos": 1,
+          "value": 4,
+          "idle": 20,
+          "updatedAt": 1592263383937
+        },
+        "down": {
+          "pos": 1,
+          "value": 36,
+          "idle": 20,
+          "updatedAt": 1592263385272
+        },
+        "left": {
+          "pos": 1,
+          "value": 16,
+          "idle": 20,
+          "updatedAt": 1592263386144
+        },
+        "right": {
+          "pos": 1,
+          "value": 24,
+          "idle": 20,
+          "updatedAt": 1592263387080
+        },
+        "a": {
+          "pos": 0,
+          "value": 2,
+          "idle": 0,
+          "updatedAt": 1592263388512
+        },
+        "b": {
+          "pos": 0,
+          "value": 4,
+          "idle": 0,
+          "updatedAt": 1592263389536
+        },
+        "select": {
+          "pos": 1,
+          "value": 21,
+          "idle": 20,
+          "updatedAt": 1592263390592
+        },
+        "start": {
+          "pos": 1,
+          "value": 22,
+          "idle": 20,
+          "updatedAt": 1592263391600
+        }
+      }
+    }
+  },
+  "2064": {
+    "58625": {
+      "meta": {
+        "vendorId": 2064,
+        "productId": 58625,
+        "path": "IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/XHC1@14/XHC1@14000000/HS14@14600000/USB2.0 Hub             @14600000/AppleUSB20Hub@14600000/AppleUSB20HubPort@14620000/usb gamepad           @14620000/IOUSBHostInterface@0/AppleUserUSBHostHIDDevice",
+        "serialNumber": "",
+        "manufacturer": "",
+        "product": "usb gamepad           ",
+        "release": 262,
+        "interface": 0,
+        "usagePage": 1,
+        "usage": 4
+      },
+      "map": {
+        "a": {
+          "pos": 5,
+          "value": 47,
+          "idle": 15,
+          "updatedAt": 1619372012545,
+          "pressed": false
+        },
+        "up": {
+          "pos": 4,
+          "value": 0,
+          "idle": 127,
+          "updatedAt": 1619372022473,
+          "pressed": false
+        },
+        "b": {
+          "pos": 5,
+          "value": 31,
+          "idle": 15,
+          "updatedAt": 1619372487403,
+          "pressed": false
+        },
+        "start": {
+          "pos": 6,
+          "value": 32,
+          "idle": 0,
+          "updatedAt": 1619372487970,
+          "pressed": false
+        },
+        "select": {
+          "pos": 6,
+          "value": 16,
+          "idle": 0,
+          "updatedAt": 1619372488410,
+          "pressed": false
+        },
+        "right": {
+          "pos": 3,
+          "value": 255,
+          "idle": 127,
+          "updatedAt": 1619372488986,
+          "pressed": false
+        },
+        "left": {
+          "pos": 3,
+          "value": 0,
+          "idle": 127,
+          "updatedAt": 1619372489474,
+          "pressed": false
+        },
+        "down": {
+          "pos": 4,
+          "value": 255,
+          "idle": 127,
+          "updatedAt": 1619372489914,
+          "pressed": false
+        }
+      },
+      "idle": [
+        1,
+        128,
+        128,
+        127,
+        127,
+        15,
+        0,
+        0
+      ]
+    }
+  }
+}

@@ -41,7 +41,15 @@ function cleanseDeviceEventPos(device, number, index) {
     return ((_a = device.ignoreBits) === null || _a === void 0 ? void 0 : _a.includes(index)) ? 0 : number;
 }
 function devicesMatch(device, lDevice) {
-    return device === lDevice || device.productId === lDevice.productId && device.vendorId === lDevice.vendorId;
+    if (device === lDevice) {
+        return true; // exact match
+    }
+    return device.path === lDevice.path;
+    /*
+    device.productId === lDevice.productId && device.vendorId === lDevice.vendorId
+    && device.manufacturer === lDevice.manufacturer
+    && device.product === lDevice.product
+    */
 }
 exports.devicesMatch = devicesMatch;
 function isDeviceController(device) {

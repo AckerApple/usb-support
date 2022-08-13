@@ -16,28 +16,30 @@
       <button type="button" (click)="addTestController()">add test controller</button>
     </p>
     <div class="flex-wrap">
-      <div style="display:flex;flex-wrap: wrap;">
-        <div *ngFor="let item of controllers">
-          <button type="button" style="margin:.5em;font-size:1.1em;padding:.4em;"
-            (click)="listenToDevice(item)"
-            [style.background-color] = "item.subscribed && 'blue'"
-            [style.color] = "item.subscribed && 'white'"
-          >{{ item.product || item.productId + ':' + item.vendorId }}</button>
-        </div>
-      </div>
+      <a *ngFor="let item of controllers" class="flex1 block margin-xxs pad-xs border-1 radius-5 text-center"
+        (click)="listenToDevice(item)"
+        [style.background-color] = "item.subscribed && 'blue'"
+        [style.color] = "item.subscribed && 'white'"
+      >
+        {{ item.product || item.productId + ':' + item.vendorId }}
+        <div class="text-xs">{{ item.manufacturer }}</div>
+      </a>
     </div>
     <a class="text-center block pad" (click)="debug.controllers = !debug.controllers"
       [class]="debug.controllers ? 'bg-energized' : 'bg-calm'"
     >🐛 debug json</a>
     <textarea *ngIf="debug.controllers" class="code" wrap="off" disabled
-    >{{nonControllers | json}}</textarea>
+    >{{controllers | json}}</textarea>
   </div>
 
   <div *ngIf="listeners.length" class="flex2 border border-radius-10">
     <div *ngFor="let device of listeners">
       <h4>{{ device.meta.product || device.meta.productId + ':' + device.meta.vendorId }}</h4>
-      <textarea class="code" wrap="off" [style.height.em]="25 * listeners.length" disabled
+      
+      <textarea class="code" wrap="off" [style.height.em]="25 * listeners.length"
+        (change)="stringUpdateSavedController($event.target.value)"
       >{{ device | json }}</textarea>
+      
       <div class="flex-wrap flex-valign-center child-margin-xxs">
         <button class="flex1" (click)="saveController(device)"
         >💾 save</button>
@@ -53,16 +55,17 @@
       </div>
 
       <!-- visual bit map -->
-      <h4>📍 button map</h4>
-      <div class="flex-wrap flex-valign-center child-margin-xxs child-pad-xs">
+      <h4>📍 button bit map</h4>
+      <div class="flex-wrap flex-valign-center child-margin-1 child-pad-xxs">
         <div *ngFor="let value of device.lastEvent;let index=index"
-          class="border radius-5 cursor-pointer"
+          class="border radius-5 cursor-pointer flex-1 text-center"
           [class.bg-danger] = "device.ignoreBits?.includes(index)"
           (click) = "toggleIgnoreDeviceBit(device, index)"
         >{{'000' + value | slice : -3}}</div>
       </div>
 
       <!-- visual button map -->
+      <h4>📍 button name map</h4>
       <div class="flex-wrap child-margin-xxs">
           <ng-container *ngFor="let button of device.map | keyvalue">
             <div class="flex flex-1">
@@ -154,4 +157,10 @@
     <textarea class="code" disabled>{{debug.lastLogs.error | json}}</textarea>
   </div>
 
+</div>
+<!-- audio element for when change occurs -->
+<div class="hide">
+  <audio id="buttonChangeAudio" controls width="100" height="100">
+    <source src="assets/LOZ_Get_Heart.wav">
+  </audio>
 </div>

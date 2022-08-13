@@ -57,7 +57,16 @@ function cleanseDeviceEventPos(
 }
 
 export function devicesMatch(device: IDeviceMeta, lDevice: IDeviceMeta): boolean {
-  return device === lDevice || device.productId === lDevice.productId && device.vendorId === lDevice.vendorId
+  if ( device === lDevice ) {
+    return true // exact match
+  }
+
+  return device.path === lDevice.path
+  /*
+  device.productId === lDevice.productId && device.vendorId === lDevice.vendorId
+  && device.manufacturer === lDevice.manufacturer
+  && device.product === lDevice.product
+  */
 }
 
 export function isDeviceController(device: Device): boolean {
