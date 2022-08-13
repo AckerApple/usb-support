@@ -55,7 +55,7 @@ export class AppComponent {
   ngOnInit(){
     this.log('connecting to websocket', this.wsUrl)
     try {
-      this.connect()
+      this.reconnect()
       this.debug.state = 'constructed'
       this.log('web socket connected')
     } catch (err) {
