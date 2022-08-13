@@ -65,9 +65,23 @@ export class AppComponent {
     }
   }
 
+  reconnect() {
+    if (this.reconnectInterval) {
+      clearInterval(this.reconnectInterval)
+    }
+    
+    this.connect()
+
+    this.reconnectInterval = setInterval(() => {
+      this.log({message: 'attempting ws reconnect...'})
+      this.connect()
+    }, 3000)
+  }
+
   connect() {
     this.connection = new WebSocket(this.wsUrl)
-      this.connection.onopen = () => {
+
+    this.connection.onopen = () => {
       this.log('web socket handshake successful')
       console.log('this.connection', this.connection)
 
@@ -81,15 +95,13 @@ export class AppComponent {
       this.debug.state = 'socket opened'
 
       this.connection.onclose = () => {
-        this.reconnectInterval = setInterval(() => {
-          this.log({message: 'attempting ws reconnect...'})
-          this.connect()
-        }, 3000)
+        this.reconnect()
       }
     }
 
     this.connection.onerror = (ev: Event): any => {
       this.error(
+        'socket onerror',
         ev,
         {message: `Socket error`},
       )

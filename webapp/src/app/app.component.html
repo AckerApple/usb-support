@@ -5,8 +5,11 @@
   }
 </style>
 
-<div *ngIf="connection?.readyState !== 1" class="bg-warning pad">
-  ⚠️ Not connected to websocket server
+<div *ngIf="connection?.readyState !== 1" class="bg-warning pad flex-apart">
+  <span>
+    ⚠️ Not connected to websocket server
+  </span>
+  <a (click)="reconnect()">🔄</a>
 </div>
 
 <div class="flex-wrap child-pad-xs child-margin-xs">
